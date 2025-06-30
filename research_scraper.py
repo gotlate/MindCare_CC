@@ -26,7 +26,8 @@ def load_resources(file_path):
         return {"Support & Awareness Platforms": [], "Research & Studies": [], "Suggestions": []}
 
 def save_resources(file_path, resources):
-    resources["Research & Studies"] = resources.get("Research & Studies", [])[:50] # Keep latest 50
+    # This function now expects resources["Research & Studies"] to be already sorted and deduplicated
+    resources["Research & Studies"] = resources.get("Research & Studies", [])[:50] # Keep latest 50 after sorting
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(resources, f, indent=4, ensure_ascii=False)
 
@@ -48,11 +49,13 @@ def scrape_semantic_scholar(query):
                 title = paper.get('title', 'No Title')
                 description = paper.get('abstract', 'No Abstract Available')
                 url = paper.get('url', '#')
+                publication_date = paper.get('publicationDate') # Get publication date
 
                 results.append({
                     "title": title,
                     "description": description,
-                    "url": url
+                    "url": url,
+                    "publicationDate": publication_date # Store publication date
                 })
         else:
             print(f"No data found for query: {query}")
@@ -70,12 +73,25 @@ def update_research_papers():
     student_research = scrape_semantic_scholar(STUDENT_RESEARCH_QUERY)
     
     if student_research:
-        # Add new papers, preventing duplicates
-        existing_urls = {paper['url'] for paper in student_resources.get("Research & Studies", [])}
-        new_papers = [paper for paper in student_research if paper['url'] not in existing_urls]
-        student_resources["Research & Studies"] = new_papers + student_resources.get("Research & Studies", [])
+        all_student_papers = student_resources.get("Research & Studies", []) + student_research
+        
+        # Use a dictionary for deduplication, keeping the entry with the latest publication date
+        unique_student_papers_dict = {}
+        for paper in all_student_papers:
+            url = paper.get('url')
+            pub_date = paper.get('publicationDate')
+            
+            if url and pub_date: # Ensure URL and publicationDate exist
+                if url not in unique_student_papers_dict or pub_date > unique_student_papers_dict[url].get('publicationDate', ''):
+                    unique_student_papers_dict[url] = paper
+        
+        # Convert dictionary values back to a list and sort by publicationDate (descending)
+        sorted_student_papers = sorted(list(unique_student_papers_dict.values()), 
+                                      key=lambda x: x.get('publicationDate', ''), 
+                                      reverse=True)
+        student_resources["Research & Studies"] = sorted_student_papers
         save_resources(STUDENT_RESOURCES_PATH, student_resources)
-        print(f"Added {len(new_papers)} new research papers for students.")
+        print(f"Updated student research papers. Total: {len(sorted_student_papers)}")
     
     time.sleep(10) # Increased delay between requests
 
@@ -84,11 +100,25 @@ def update_research_papers():
     professional_research = scrape_semantic_scholar(PROFESSIONAL_RESEARCH_QUERY)
     
     if professional_research:
-        existing_urls = {paper['url'] for paper in professional_resources.get("Research & Studies", [])}
-        new_papers = [paper for paper in professional_research if paper['url'] not in existing_urls]
-        professional_resources["Research & Studies"] = new_papers + professional_resources.get("Research & Studies", [])
+        all_professional_papers = professional_resources.get("Research & Studies", []) + professional_research
+
+        # Use a dictionary for deduplication, keeping the entry with the latest publication date
+        unique_professional_papers_dict = {}
+        for paper in all_professional_papers:
+            url = paper.get('url')
+            pub_date = paper.get('publicationDate')
+            
+            if url and pub_date: # Ensure URL and publicationDate exist
+                if url not in unique_professional_papers_dict or pub_date > unique_professional_papers_dict[url].get('publicationDate', ''):
+                    unique_professional_papers_dict[url] = paper
+
+        # Convert dictionary values back to a list and sort by publicationDate (descending)
+        sorted_professional_papers = sorted(list(unique_professional_papers_dict.values()), 
+                                          key=lambda x: x.get('publicationDate', ''), 
+                                          reverse=True)
+        professional_resources["Research & Studies"] = sorted_professional_papers
         save_resources(PROFESSIONAL_RESOURCES_PATH, professional_resources)
-        print(f"Added {len(new_papers)} new research papers for professionals.")
+        print(f"Updated professional research papers. Total: {len(sorted_professional_papers)}")
 
 if __name__ == "__main__":
     if not os.path.exists(DATA_DIR):
