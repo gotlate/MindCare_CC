@@ -105,30 +105,6 @@ def preprocess_professional_data(df, required_columns):
             df[col] = 0 
     return df[required_columns].astype(float) 
 
-def clean_feature_contributions(raw_contributions, user_input, categorical_features):
-    cleaned_contributions = {}
-    
-    # Consolidate one-hot encoded features based on the user's actual selection
-    for cat_feature in categorical_features:
-        user_choice = user_input.get(cat_feature)
-        if user_choice:
-            # Construct the exact feature name as created by pd.get_dummies
-            one_hot_feature_name = f"{cat_feature}_{user_choice}"
-            if one_hot_feature_name in raw_contributions:
-                # Use the simple, readable name for the chart
-                cleaned_contributions[cat_feature] = raw_contributions[one_hot_feature_name]
-
-    # Copy over all other features that are not part of a one-hot encoded group
-    for feature, value in raw_contributions.items():
-        is_one_hot_part = False
-        for cat_feature in categorical_features:
-            if feature.startswith(f"{cat_feature}_"):
-                is_one_hot_part = True
-                break
-        if not is_one_hot_part:
-            cleaned_contributions[feature] = value
-            
-    return cleaned_contributions
 
 app = Flask(__name__)
 
@@ -202,8 +178,15 @@ def predict_student():
 
     raw_contributions = {feature: float(value) for feature, value in zip(students_cols, shap_values_instance)}
     
-    student_categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree"]
-    feature_contributions = clean_feature_contributions(raw_contributions, data, student_categorical_features)
+    feature_contributions = {}
+    categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree"]
+    for key, value in data.items():
+        if key in categorical_features:
+            one_hot_key = f"{key}_{value}"
+            if one_hot_key in raw_contributions:
+                feature_contributions[key] = raw_contributions[one_hot_key]
+        elif key in raw_contributions:
+            feature_contributions[key] = raw_contributions[key]
     
     if risk_score <= 4:
         risk_category = "Low Risk"
@@ -236,8 +219,15 @@ def predict_professional():
         
     raw_contributions = {feature: float(value) for feature, value in zip(professionals_cols, shap_values_instance)}
     
-    professional_categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"]
-    feature_contributions = clean_feature_contributions(raw_contributions, data, professional_categorical_features)
+    feature_contributions = {}
+    categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"]
+    for key, value in data.items():
+        if key in categorical_features:
+            one_hot_key = f"{key}_{value}"
+            if one_hot_key in raw_contributions:
+                feature_contributions[key] = raw_contributions[one_hot_key]
+        elif key in raw_contributions:
+            feature_contributions[key] = raw_contributions[key]
 
     if risk_score <= 4:
         risk_category = "Low Risk"
