@@ -106,7 +106,7 @@ app = Flask(__name__)
 degree_map = {
     "DOCTOR": ["MBBS", "MD", "MS"],
     "ENGINEER": ["B.Tech", "M.Tech", "BE", "ME"],
-    "TEACHER": ["B.Ed", "M.Ed", "B.A", "M.A"],
+    "TEACHER": ["B.Ed", "M.Ed", "B.A", "M.A", "Any Bachelor's Degree", "Any Master's Degree", "PhD"],
     "LAWYER": ["LLB", "LLM"],
     "ARCHITECT": ["B.Arch", "M.Arch"],
     "ARTIST": ["BFA", "MFA"],
