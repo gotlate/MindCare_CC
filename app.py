@@ -236,6 +236,14 @@ def get_degrees():
 def index():
     return render_template('index.html', unique_cities=unique_cities, unique_student_degrees=unique_student_degrees, unique_professions=unique_professions)
 
+@app.route('/student_form')
+def student_form():
+    return render_template('student_form.html', unique_cities=unique_cities, unique_student_degrees=unique_student_degrees)
+
+@app.route('/professional_form')
+def professional_form():
+    return render_template('professional_form.html', unique_cities=unique_cities, unique_professions=unique_professions)
+
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
     data = request.get_json()

@@ -90,12 +90,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
+            const predictionResultDiv = document.getElementById('prediction-result');
             if(predictionResultDiv) predictionResultDiv.innerText = 'Prediction Risk Score: ' + data.prediction.toFixed(2) + ' / 10';
         })
         .catch(error => {
             console.error('Error:', error);
+            const predictionResultDiv = document.getElementById('prediction-result');
             if(predictionResultDiv) predictionResultDiv.innerText = 'Error: ' + error.message;
-            showUserTypeSelection()
         });
     }
 
