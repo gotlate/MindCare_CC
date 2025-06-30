@@ -53,12 +53,16 @@ body {
     letter-spacing: 2px;
     font-weight: 700; /* Bolder font */
     text-shadow: 1px 1px 2px rgba(0,0,0,0.05); /* Subtle text shadow for depth */
+    animation: fadeInUp 1.2s ease-out forwards; /* Apply animation here */
 }
 
 .tagline {
     font-size: 1.6em; /* Larger tagline */
     color: #5d6d7e; /* Medium grey-blue */
     margin-bottom: 50px; /* Increased margin */
+    animation: fadeIn 1.5s ease-out forwards; /* Apply a basic fade-in to tagline too */
+    animation-delay: 0.3s; /* Delay tagline animation slightly */
+    opacity: 0; /* Start hidden for animation */
 }
 
 /* Selection Cards (Landing & Dashboard) */
@@ -86,7 +90,12 @@ body {
     justify-content: space-between;
     align-items: center; /* Center content */
     text-align: center;
+    animation: fadeInScale 0.8s ease-out forwards; /* Add animation to cards */
+    opacity: 0; /* Start hidden for animation */
 }
+
+.selection-card:nth-child(1) { animation-delay: 0.6s; } /* Delay first card */
+.selection-card:nth-child(2) { animation-delay: 0.8s; } /* Delay second card */
 
 .selection-card:hover {
     transform: translateY(-15px); /* Even more pronounced lift */
@@ -278,8 +287,30 @@ select:focus {
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Responsive Design */
