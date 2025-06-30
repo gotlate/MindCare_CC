@@ -8,17 +8,16 @@ PROFESSIONAL_RESOURCES_PATH = os.path.join(DATA_DIR, 'professional_resources.jso
 
 # --- Static Data ---
 STATIC_ARTICLES_STUDENT = [
-    {"title": "The Jed Foundation", "url": "https://www.jedfoundation.org/", "description": "Provides resources, support, and guidance for teens and young adults."},
-    {"title": "Active Minds", "url": "https://www.activeminds.org/", "description": "A leading nonprofit organization for young adult mental health advocacy and awareness."},
-    {"title": "TalkCampus", "url": "https://www.talkcampus.com/", "description": "A global peer-support platform designed specifically for students to talk about their mental health anonymously and safely"},
-    {"title": "NAMI - National Alliance on Mental Illness", "url": "https://www.nami.org/Your-Journey/Teens-Young-Adults", "description": "Support and resources for young adults facing mental health challenges."},
-    {"title": "Praan", "url": "https://www.praanwellness.com/", "description": "A mental health platform offering therapy, support groups, and educational resources tailored to diverse emotional needs"}
+    {"title": "The Jed Foundation | Mental Health Resource Center", "url": "https://www.jedfoundation.org/", "description": "Provides resources, support, and guidance for teens and young adults."},
+    {"title": "Active Minds | Changing the Conversation About Mental Health", "url": "https://www.activeminds.org/", "description": "A leading nonprofit for young adult mental health advocacy and awareness."},
+    {"title": "Mindfulness for Students | Mindful.org", "url": "https://www.mindful.org/mindfulness-for-students/", "description": "Articles and guides on practicing mindfulness to reduce stress and improve focus."},
+    {"title": "NAMI | National Alliance on Mental Illness", "url": "https://www.nami.org/Your-Journey/Teens-Young-Adults", "description": "Support and resources for young adults facing mental health challenges."}
 ]
 
 STATIC_ARTICLES_PROFESSIONAL = [
-    {"title": "Harvard Business Review - Mental Health", "url": "https://hbr.org/topic/mental-health", "description": "In-depth articles on mental health, leadership, and workplace culture."},
+    {"title": "Harvard Business Review - Mental Health Topic", "url": "https://hbr.org/topic/mental-health", "description": "In-depth articles on mental health, leadership, and workplace culture."},
     {"title": "The Mood Space", "url": "https://www.themoodspace.com/", "description" : "A mental health platform offering personalized online therapy and emotional well-being programs."},
-    {"title": "Deloitte - Mental health and  well-being in the workplace", "url": "deloitte_mental_health.pdf", "description": "A document about mental well being in the workplace"},
+    {"title": "Deloitte - Mental health and  well-being in the workplace", "url": "/static/deloitte_mental_health.pdf", "description": "A document about mental well being in the workplace"},
     {"title": "OSHA - Workplace Stress", "url": "https://www.osha.gov/workplace-stress", "description": "Resources from the Occupational Safety and Health Administration on managing workplace stress."},
     {"title": "mpowerminds - Mental Health in the Workplace", "url": "https://mpowerminds.com/blog/mental-health-in-the-workplace", "description": "A blog on mental health in the workplace"}
 ]
@@ -115,9 +114,10 @@ SUGGESTIONS_PROFESSIONAL = [
     "Leave work on time as a rule, not an exception.",
     "Negotiate for flexible working hours if it suits your lifestyle.",
     "Improve your financial literacy to reduce money-related stress.",
+    "Take regular 'gratitude walks' to appreciate positive aspects of your life.",
     "Declutter your physical workspace regularly.",
     "Plan a vacation or staycation well in advance.",
-   "Create a 'kudos' folder in your email to save positive feedback.",
+    "Create a 'kudos' folder in your email to save positive feedback.",
     "Practice detaching your identity from your job title.",
     "Limit checking your email to specific times of the day.",
     "Learn a new skill that is not related to your career path.",
@@ -131,12 +131,12 @@ SUGGESTIONS_PROFESSIONAL = [
 # --- Helper Functions ---
 def load_resources(file_path):
     if not os.path.exists(file_path):
-        return {"Support & Awareness Platforms": [], "Research & Studies": [], "Suggestions": []}
+        return {"Latest Articles": [], "Research & Studies": [], "Suggestions": []}
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
-        return {"Support & Awareness Platforms": [], "Research & Studies": [], "Suggestions": []}
+        return {"Latest Articles": [], "Research & Studies": [], "Suggestions": []}
 
 def save_resources(file_path, resources):
     with open(file_path, 'w', encoding='utf-8') as f:
@@ -145,14 +145,14 @@ def save_resources(file_path, resources):
 def populate_files():
     # Student resources
     student_resources = load_resources(STUDENT_RESOURCES_PATH)
-    student_resources["Support & Awareness Platforms"] = STATIC_ARTICLES_STUDENT
+    student_resources["Latest Articles"] = STATIC_ARTICLES_STUDENT
     student_resources["Suggestions"] = SUGGESTIONS_STUDENT
     save_resources(STUDENT_RESOURCES_PATH, student_resources)
     print("Populated student resources with static articles and a large pool of suggestions.")
 
     # Professional resources
     professional_resources = load_resources(PROFESSIONAL_RESOURCES_PATH)
-    professional_resources["Support & Awareness Platforms"] = STATIC_ARTICLES_PROFESSIONAL
+    professional_resources["Latest Articles"] = STATIC_ARTICLES_PROFESSIONAL
     professional_resources["Suggestions"] = SUGGESTIONS_PROFESSIONAL
     save_resources(PROFESSIONAL_RESOURCES_PATH, professional_resources)
     print("Populated professional resources with static articles and a large pool of suggestions.")
