@@ -36,26 +36,69 @@ except FileNotFoundError:
 
 # Define preprocessing functions (assuming they are the same as in your original application.py)
 def preprocess_student_data(df, required_columns):
+    df = df.copy() # Work on a copy to avoid SettingWithCopyWarning
     df = df.drop(columns=["Name"])
+
+    # Map binary columns
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
         df[col] = df[col].map({"Yes": 1, "No": 0})
     df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
+
+    # Map ordinal categorical columns
+    ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
+    df["Academic Pressure"] = df["Academic Pressure"].map(ordinal_mapping)
+    df["Study Satisfaction"] = df["Study Satisfaction"].map(ordinal_mapping)
+    df["Financial Stress"] = df["Financial Stress"].map(ordinal_mapping)
+
+    # Convert numerical columns to numeric type
+    numerical_cols = ['Age', 'CGPA', 'Work/Study Hours']
+    for col in numerical_cols:
+        # Ensure column exists before attempting conversion
+        if col in df.columns:
+            # Convert to numeric, coercing errors (non-numeric values become NaN)
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            # Fill NaN if any, perhaps with mean or median, or 0 if it's acceptable
+            df[col] = df[col].fillna(0) # For simplicity, fill with 0
+
+    # One-hot encode non-binary and non-ordinal columns
     df = pd.get_dummies(df, columns=["City", "Dietary Habits", "Sleep Duration", "Degree"])
+
+    # Ensure all required columns are present and in the correct order
     for col in required_columns:
         if col not in df.columns:
-            df[col] = 0
-    return df[required_columns]
+            df[col] = 0 # Add missing columns with a default value (e.g., 0)
+    return df[required_columns].astype(float) # Ensure all columns are float before passing to model
 
 def preprocess_professional_data(df, required_columns):
+    df = df.copy() # Work on a copy
     df = df.drop(columns=["Name"])
+
+    # Map binary columns
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
         df[col] = df[col].map({"Yes": 1, "No": 0})
     df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
+
+    # Map ordinal categorical columns
+    ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
+    df["Work Pressure"] = df["Work Pressure"].map(ordinal_mapping)
+    df["Job Satisfaction"] = df["Job Satisfaction"].map(ordinal_mapping)
+    df["Financial Stress"] = df["Financial Stress"].map(ordinal_mapping)
+
+    # Convert numerical columns to numeric type
+    numerical_cols = ['Age', 'Work/Study Hours']
+    for col in numerical_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            df[col] = df[col].fillna(0) # For simplicity, fill with 0
+
+    # One-hot encode non-binary and non-ordinal columns
     df = pd.get_dummies(df, columns=["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"])
+
+    # Ensure all required columns are present and in the correct order
     for col in required_columns:
         if col not in df.columns:
-            df[col] = 0
-    return df[required_columns]
+            df[col] = 0 # Add missing columns with a default value (e.g., 0)
+    return df[required_columns].astype(float) # Ensure all columns are float before passing to model
 
 app = Flask(__name__)
 
