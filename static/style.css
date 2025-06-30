@@ -503,11 +503,19 @@ select:focus {
 .breakdown-section h3 {
     font-size: 1.8em;
     color: #1a2a3a;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+}
+
+.chart-subtitle {
+    font-size: 1em;
+    color: #5d6d7e;
+    margin-bottom: 25px;
 }
 
 .chart-container {
     position: relative;
-    height: 250px;
+    height: 280px; /* Increased height for better visibility */
     width: 100%;
+    padding: 0 10px; /* Add some padding */
+    box-sizing: border-box;
 }
