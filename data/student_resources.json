@@ -1,14 +1,24 @@
 {
     "Latest Articles": [
         {
-            "title": "Coping with Exam Stress: A Student's Guide",
-            "description": "Strategies for managing academic pressure and maintaining mental well-being during exam periods.",
-            "url": "https://example.com/student-exam-stress"
+            "title": "The Jed Foundation | Mental Health Resource Center",
+            "url": "https://www.jedfoundation.org/",
+            "description": "Provides resources, support, and guidance for teens and young adults."
         },
         {
-            "title": "Balancing Social Life and Studies: Tips for College Students",
-            "description": "Advice on how to find a healthy balance between academic responsibilities and social engagements.",
-            "url": "https://example.com/student-balance"
+            "title": "Active Minds | Changing the Conversation About Mental Health",
+            "url": "https://www.activeminds.org/",
+            "description": "A leading nonprofit for young adult mental health advocacy and awareness."
+        },
+        {
+            "title": "Mindfulness for Students | Mindful.org",
+            "url": "https://www.mindful.org/mindfulness-for-students/",
+            "description": "Articles and guides on practicing mindfulness to reduce stress and improve focus."
+        },
+        {
+            "title": "NAMI | National Alliance on Mental Illness",
+            "url": "https://www.nami.org/Your-Journey/Teens-Young-Adults",
+            "description": "Support and resources for young adults facing mental health challenges."
         }
     ],
     "Research & Studies": [
@@ -34,5 +44,57 @@
             "description": "Guidance on connecting with peers, mentors, and mental health professionals on campus.",
             "url": "https://example.com/student-support-system"
         }
+    ],
+    "Suggestions": [
+        "Take a 10-minute walk between classes to clear your head.",
+        "Prioritize getting 7-9 hours of sleep, especially before an exam.",
+        "Join a study group or a club to build a sense of community.",
+        "Schedule your study sessions in a planner to reduce anxiety about deadlines.",
+        "Practice the 4-7-8 breathing technique before a presentation.",
+        "Set small, achievable goals for each study session.",
+        "Celebrate your small wins, like finishing a difficult chapter.",
+        "Designate a specific area for studying to improve focus.",
+        "Limit social media use an hour before bedtime.",
+        "Eat a balanced breakfast to fuel your brain for the day.",
+        "Stay hydrated by keeping a water bottle with you.",
+        "Reach out to a professor or TA during office hours if you're struggling.",
+        "Use noise-cancelling headphones to minimize distractions.",
+        "Incorporate physical activity into your daily routine.",
+        "Explore your campus's counseling and psychological services.",
+        "Make time for a hobby that you enjoy and find relaxing.",
+        "Learn to say 'no' to extra commitments when you're feeling overwhelmed.",
+        "Spend time in nature, even if it's just a park on campus.",
+        "Keep your living space organized and clean.",
+        "Create a 'worry journal' to write down anxieties before they build up.",
+        "Practice positive self-talk and challenge negative thoughts.",
+        "Listen to calming music or a podcast while you commute or walk.",
+        "Unfollow social media accounts that make you feel inadequate.",
+        "Make a list of things you're grateful for at the end of each week.",
+        "Connect with friends and talk about something other than school.",
+        "Plan a fun, low-stress activity for the weekend.",
+        "Break down large assignments into smaller, manageable tasks.",
+        "Try a digital detox for a few hours each weekend.",
+        "Ask for help when you need it – it's a sign of strength.",
+        "Read a book for pleasure, not for a class.",
+        "Take a different route to class to change your perspective.",
+        "Identify your most productive time of day and schedule tough tasks then.",
+        "Organize your notes after each lecture to reinforce learning.",
+        "Practice mindfulness while eating your meals.",
+        "Set boundaries with friends or family who may be causing stress.",
+        "Volunteer for a cause you care about to gain perspective.",
+        "Limit your caffeine intake, especially in the afternoon.",
+        "Watch a funny movie or TV show to de-stress.",
+        "Take a hot shower or bath before bed to relax.",
+        "Explore creative outlets like drawing, writing, or playing an instrument.",
+        "Learn about imposter syndrome and strategies to combat it.",
+        "Do a full body stretch when you wake up in the morning.",
+        "Compliment a classmate or friend.",
+        "Put your phone in another room while you study.",
+        "Make a healthy snack for your next study session.",
+        "Plan a visit home or a call with your family.",
+        "Forgive yourself for not being perfect.",
+        "Create a playlist of uplifting songs.",
+        "Sit in a different spot in the library or classroom.",
+        "Remind yourself of your long-term goals and why you're in school."
     ]
 }
