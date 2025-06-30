@@ -91,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if(predictionResultDiv) predictionResultDiv.innerText = 'Prediction Risk Score: ' + data.prediction.toFixed(2) + ' / 10';
-            showUserTypeSelection()
         })
         .catch(error => {
             console.error('Error:', error);
