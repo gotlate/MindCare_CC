@@ -47,16 +47,18 @@ def scrape_semantic_scholar(query):
         if 'data' in data:
             for paper in data['data']:
                 title = paper.get('title', 'No Title')
-                description = paper.get('abstract', 'No Abstract Available')
+                description = paper.get('abstract') # Get abstract, will be None if not present
                 url = paper.get('url', '#')
                 publication_date = paper.get('publicationDate') # Get publication date
 
-                results.append({
-                    "title": title,
-                    "description": description,
-                    "url": url,
-                    "publicationDate": publication_date # Store publication date
-                })
+                # Only add paper if it has a description (abstract)
+                if description and description.strip():
+                    results.append({
+                        "title": title,
+                        "description": description,
+                        "url": url,
+                        "publicationDate": publication_date # Store publication date
+                    })
         else:
             print(f"No data found for query: {query}")
     except requests.exceptions.RequestException as e:
