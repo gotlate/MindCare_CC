@@ -115,7 +115,7 @@ SUGGESTIONS_PROFESSIONAL = [
     "Improve your financial literacy to reduce money-related stress.",
     "Declutter your physical workspace regularly.",
     "Plan a vacation or staycation well in advance.",
-s   "Create a 'kudos' folder in your email to save positive feedback.",
+   "Create a 'kudos' folder in your email to save positive feedback.",
     "Practice detaching your identity from your job title.",
     "Limit checking your email to specific times of the day.",
     "Learn a new skill that is not related to your career path.",
