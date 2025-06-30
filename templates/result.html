@@ -5,40 +5,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MindCare - Assessment Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 </head>
 <body>
     <div class="main-container">
-        <h2 class="section-title">Assessment Result</h2>
-        <div class="result-container">
-            <div class="gauge-container">
-                <div class="gauge">
-                    <div class="gauge-body">
-                        <div class="gauge-fill"></div>
-                        <div class="gauge-cover">
-                            <div class="risk-score">{{ risk_score }}</div>
-                            <div class="risk-category">{{ risk_category }}</div>
-                        </div>
-                    </div>
+        <div class="result-card" id="result-card">
+            <div class="result-header">
+                <i id="result-icon" class="fas"></i>
+                <h2 class="section-title" style="margin-bottom: 20px;">Your Result</h2>
+            </div>
+            
+            <div class="gauge-display">
+                <svg width="250" height="250" viewBox="0 0 120 120" class="gauge-svg">
+                    <circle class="gauge-base" cx="60" cy="60" r="54" fill="none" stroke-width="12"></circle>
+                    <circle id="gauge-progress" class="gauge-progress" cx="60" cy="60" r="54" fill="none" stroke-width="12" transform="rotate(-90 60 60)"></circle>
+                </svg>
+                <div class="gauge-text">
+                    <div id="animated-score" class="risk-score">0</div>
+                    <div class="risk-category">{{ risk_category }}</div>
                 </div>
             </div>
+
             <div class="result-message">
                 <p>{{ message }}</p>
             </div>
+
+            <div class="button-group">
+                <a href="{{ url_for('student_resources') }}" class="button primary">Explore Resources</a>
+                <a href="{{ url_for('index') }}" class="button secondary">Back to Home</a>
+            </div>
         </div>
     </div>
+
     <script>
-        const riskScore = {risk_score };
-        const gaugeFill = document.querySelector('.gauge-fill');
-        const gaugeCover = document.querySelector('.gauge-cover');
-        const rotation = (riskScore / 10) * 180;
-        gaugeFill.style.transform = `rotate(${rotation}deg)`;
-        if (riskScore <= 4) {
-            gaugeFill.style.backgroundColor = '#4CAF50';
-        } else if (riskScore <= 7) {
-            gaugeFill.style.backgroundColor = '#FFC107';
-        } else {
-            gaugeFill.style.backgroundColor = '#F44336';
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const riskScore = parseFloat("{{ risk_score }}");
+            const riskCategory = "{{ risk_category }}";
+            const resultCard = document.getElementById('result-card');
+            const resultIcon = document.getElementById('result-icon');
+            const animatedScore = document.getElementById('animated-score');
+            const gaugeProgress = document.getElementById('gauge-progress');
+
+            const radius = gaugeProgress.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            gaugeProgress.style.strokeDasharray = circumference;
+
+            function setProgress(percent) {
+                const offset = circumference - (percent / 10) * circumference;
+                gaugeProgress.style.strokeDashoffset = offset;
+            }
+
+            // Set initial state
+            setProgress(0);
+            
+            // Determine color and icon
+            let colorClass = 'low-risk';
+            let iconClass = 'fa-check-circle';
+            if (riskCategory === 'Medium Risk') {
+                colorClass = 'medium-risk';
+                iconClass = 'fa-exclamation-triangle';
+            } else if (riskCategory === 'High Risk') {
+                colorClass = 'high-risk';
+                iconClass = 'fa-times-circle';
+            }
+            
+            resultCard.classList.add(colorClass);
+            resultIcon.classList.add(iconClass);
+
+            // Animate score and gauge
+            let startTimestamp = null;
+            const duration = 1500; // 1.5 seconds
+
+            function animate(timestamp) {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                
+                const currentScore = progress * riskScore;
+                animatedScore.textContent = currentScore.toFixed(1);
+                setProgress(currentScore);
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(animate);
+                } else {
+                    animatedScore.textContent = riskScore.toFixed(1);
+                    setProgress(riskScore);
+                }
+            }
+
+            window.requestAnimationFrame(animate);
+        });
     </script>
 </body>
 </html>
