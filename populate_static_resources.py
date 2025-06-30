@@ -8,10 +8,11 @@ PROFESSIONAL_RESOURCES_PATH = os.path.join(DATA_DIR, 'professional_resources.jso
 
 # --- Static Data ---
 STATIC_ARTICLES_STUDENT = [
-    {"title": "The Jed Foundation | Mental Health Resource Center", "url": "https://www.jedfoundation.org/", "description": "Provides resources, support, and guidance for teens and young adults."},
-    {"title": "Active Minds | Changing the Conversation About Mental Health", "url": "https://www.activeminds.org/", "description": "A leading nonprofit for young adult mental health advocacy and awareness."},
-    {"title": "Mindfulness for Students | Mindful.org", "url": "https://www.mindful.org/mindfulness-for-students/", "description": "Articles and guides on practicing mindfulness to reduce stress and improve focus."},
-    {"title": "NAMI | National Alliance on Mental Illness", "url": "https://www.nami.org/Your-Journey/Teens-Young-Adults", "description": "Support and resources for young adults facing mental health challenges."}
+    {"title": "The Jed Foundation", "url": "https://www.jedfoundation.org/", "description": "Provides resources, support, and guidance for teens and young adults."},
+    {"title": "Active Minds", "url": "https://www.activeminds.org/", "description": "A leading nonprofit organization for young adult mental health advocacy and awareness."},
+    {"title": "TalkCampus", "url": "https://www.talkcampus.com/", "description": "A global peer-support platform designed specifically for students to talk about their mental health anonymously and safely"},
+    {"title": "NAMI - National Alliance on Mental Illness", "url": "https://www.nami.org/Your-Journey/Teens-Young-Adults", "description": "Support and resources for young adults facing mental health challenges."},
+    {"title": "Praan", "url": "https://www.praanwellness.com/", "description": "A mental health platform offering therapy, support groups, and educational resources tailored to diverse emotional needs"}
 ]
 
 STATIC_ARTICLES_PROFESSIONAL = [
