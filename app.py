@@ -109,8 +109,71 @@ app = Flask(__name__)
 
 # --- Degree Mapping ---
 degree_map = {
-    "DOCTOR": ["MBBS", "MD", "MS"], "ENGINEER": ["B.Tech", "M.Tech", "BE", "ME"],
-    # (Rest of the map is unchanged)
+    "DOCTOR": ["MBBS", "MD", "MS"],
+    "ENGINEER": ["B.Tech", "M.Tech", "BE", "ME"],
+    "TEACHER": ["B.Ed", "M.Ed", "B.A", "M.A", "Any Bachelor's Degree", "Any Master's Degree", "PhD"],
+    "LAWYER": ["LLB", "LLM"],
+    "ARCHITECT": ["B.Arch", "M.Arch"],
+    "ARTIST": ["BFA", "MFA"],
+    "ACCOUNTANT": ["B.Com", "M.Com", "CA"],
+    "SOFTWARE DEVELOPER": ["B.Tech", "M.Tech", "BCA", "MCA"],
+    "NURSE": ["B.Sc Nursing", "M.Sc Nursing"],
+    "JOURNALIST": ["BJMC", "MJMC"],
+    "SCIENTIST": ["B.Sc", "M.Sc", "PhD"],
+    "ENTREPRENEUR": ["BBA", "MBA"],
+    "CONSULTANT": ["MBA", "B.Com", "B.Tech"],
+    "MANAGER": ["BBA", "MBA", "M.Com"],
+    "DESIGNER": ["B.Des", "M.Des", "BFA"],
+    "RESEARCHER": ["M.Sc", "PhD"],
+    "POLICE OFFICER": ["B.A", "B.Sc"],
+    "ELECTRICIAN": ["Diploma in Electrical Engineering", "ITI Electrician"],
+    "MECHANIC": ["Diploma in Mechanical Engineering", "ITI Mechanic"],
+    "PLUMBER": ["ITI Plumber"],
+    "CARPENTER": ["ITI Carpenter"],
+    "CHEF": ["BHM", "Diploma in Culinary Arts"],
+    "PILOT": ["B.Sc Aviation", "Commercial Pilot License"],
+    "GRAPHIC DESIGNER": ["B.Des", "BFA", "Diploma in Graphic Design"],
+    "CONTENT WRITER": ["B.A", "M.A", "BJMC"],
+    "HR MANAGER": ["BBA", "MBA", "PGDM in HR"],
+    "CUSTOMER SUPPORT": ["Any Bachelor's Degree"],
+    "SALES EXECUTIVE": ["Any Bachelor's Degree"],
+    "MARKETING MANAGER": ["BBA", "MBA", "BMS"],
+    "FINANCIAL ADVISOR": ["B.Com", "MBA Finance", "CFA"],
+    "BANKER": ["B.Com", "BBA", "MBA Finance"],
+    "CIVIL SERVANT": ["Any Bachelor's Degree"],
+    "PHARMACIST": ["B.Pharm", "M.Pharm"],
+    "VETERINARIAN": ["BVSc & AH", "MVSc"],
+    "PHOTOGRAPHER": ["BFA Photography", "Diploma in Photography"],
+    "CHARTED ACCOUNTANT": ["CA"],
+    "ACTOR": ["B.A Theatre", "Diploma in Acting"],
+    "DANCER": ["B.A Dance", "Diploma in Dance"],
+    "MUSICIAN": ["B.A Music", "Diploma in Music"],
+    "SPORTSPERSON": ["B.P.Ed", "M.P.Ed"],
+    "FASHION DESIGNER": ["B.Des Fashion", "NIFT Diploma"],
+    "INTERIOR DESIGNER": ["B.Des Interior", "Diploma in Interior Design"],
+    "SOCIAL WORKER": ["BSW", "MSW"],
+    "COUNSELOR": ["B.A Psychology", "M.A Psychology"],
+    "PHYSIOTHERAPIST": ["BPT", "MPT"],
+    "OPTOMETRIST": ["B.Optom", "M.Optom"],
+    "DENTIST": ["BDS", "MDS"],
+    "AYURVEDIC DOCTOR": ["BAMS", "MD Ayurveda"],
+    "HOMOEOPATHIC DOCTOR": ["BHMS", "MD Homoeopathy"],
+    "PARAMEDIC": ["B.Sc Paramedical Technology", "Diploma in Paramedical Science"],
+    "YOGA INSTRUCTOR": ["Diploma in Yoga", "B.A Yoga"],
+    "LIBRARIAN": ["BLIS", "MLIS"],
+    "STATISTICIAN": ["B.Sc Statistics", "M.Sc Statistics"],
+    "ECONOMIST": ["B.A Economics", "M.A Economics"],
+    "HISTORIAN": ["B.A History", "M.A History"],
+    "ANTHROPOLOGIST": ["B.A Anthropology", "M.A Anthropology"],
+    "SOCIOLOGIST": ["B.A Sociology", "M.A Sociology"],
+    "GEOGRAPHER": ["B.Sc Geography", "M.Sc Geography"],
+    "GEOLOGIST": ["B.Sc Geology", "M.Sc Geology"],
+    "ENVIRONMENTAL SCIENTIST": ["B.Sc Environmental Science", "M.Sc Environmental Science"],
+    "AGRICULTURIST": ["B.Sc Agriculture", "M.Sc Agriculture"],
+    "FOOD SCIENTIST": ["B.Tech Food Technology", "M.Tech Food Technology"],
+    "DAIRY TECHNOLOGIST": ["B.Tech Dairy Technology", "M.Tech Dairy Technology"],
+    "SUGAR TECHNOLOGIST": ["B.Tech Sugar Technology", "M.Tech Sugar Technology"],
+    "LEATHER TECHNOLOGIST": ["B.Tech Leather Technology", "M.Tech Leather Technology"]
 }
 
 # --- Resource Loading Functions ---
@@ -214,6 +277,15 @@ def result():
     user_type = request.args.get('user_type', 'student')
     feature_contributions = request.args.get('feature_contributions', '{}')
     return render_template('result.html', risk_score=risk_score, risk_category=risk_category, message=message, user_type=user_type, feature_contributions=feature_contributions)
+    
+@app.route('/get_degrees', methods=['GET'])
+def get_degrees():
+    profession = request.args.get('profession', '').upper()
+    possible_degrees = degree_map.get(profession, ["Other / Not Applicable", "Any Bachelor's Degree", "Any Master's Degree", "PhD"])
+    filtered_degrees = [d for d in possible_degrees if d in all_unique_degrees_from_dataset]
+    if not filtered_degrees:
+        filtered_degrees = ["Other / Not Applicable"]
+    return jsonify({'degrees': filtered_degrees})
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
