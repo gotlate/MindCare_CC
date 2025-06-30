@@ -4,6 +4,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, roc_auc_score, precision_recall_curve,accuracy_score,roc_curve
 import matplotlib.pyplot as plt
+import joblib
+import json
+import os
 
 # Load the dataset
 df = pd.read_csv("final_depression_dataset_1.csv") 
@@ -88,6 +91,25 @@ best_model_professionals = grid_search_pro.best_estimator_
    #     "features_list":X_professionals.columns.tolist()  # Make sure this exists when saving
     #}
     #pickle.dump(prof_data, file)
+
+# Save the trained student model
+# Create the 'models' directory if it doesn't exist
+if not os.path.exists('models'):
+    os.makedirs('models')
+
+    # Save the trained student model
+joblib.dump(best_model_students, 'models/best_model_students.pkl')
+
+    # Save the list of columns for the student model
+with open('models/student_columns.json', 'w') as f:
+    json.dump(X_students.columns.tolist(), f)
+
+    # Save the trained professional model
+joblib.dump(best_model_professionals, 'models/best_model_professionals.pkl')
+
+    # Save the list of columns for the professional model
+with open('models/professional_columns.json', 'w') as f:
+    json.dump(X_professionals.columns.tolist(), f)
 
 
 

@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+import json
+import pickle
 
 # Add the directory containing the models to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'models')))
@@ -14,8 +16,8 @@ try:
     base_dir = os.path.dirname(os.path.abspath(__file__))
     best_model_students = joblib.load(os.path.join(base_dir, 'models', 'best_model_students.pkl'))
     best_model_professionals = joblib.load(os.path.join(base_dir, 'models', 'best_model_professionals.pkl'))
-    students_cols = joblib.load(os.path.join(base_dir, 'models', 'students_cols.pkl'))
-    professionals_cols = joblib.load(os.path.join(base_dir, 'models', 'professionals_cols.pkl'))
+    students_cols = joblib.load(os.path.join(base_dir, 'models', 'students_columns.json'))
+    professionals_cols = joblib.load(os.path.join(base_dir, 'models', 'professionals_columns.json'))
 except FileNotFoundError:
     print("Error: Model or columns file not found. Please run train_models.py first.")
     sys.exit(1)
@@ -51,22 +53,45 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json()
-    user_type = data.get('user_type')
-    user_data = data.get('user_data')
+# Load the trained models and column lists
+    try:
+        with open('student_model.pkl', 'rb') as f:
+            student_model = pickle.load(f)
+        with open('student_columns.json', 'r') as f:
+            student_columns = json.load(f)
+        with open('professional_model.pkl', 'rb') as f:
+            professional_model = pickle.load(f)
+        with open('professional_columns.json', 'r') as f:
+            professional_columns = json.load(f)
+    except FileNotFoundError:
+        return jsonify({'error': 'Model or columns file not found. Please run train_models.py first.'}), 500
 
-    input_df = pd.DataFrame([user_data])
+    data = request.get_json()
+    user_type = data['user_type']
+    user_data = data['user_data']
+
+    # Convert user data to DataFrame
+    user_df = pd.DataFrame([user_data])
 
     if user_type == 'student':
-        processed_data = preprocess_student_data(input_df, students_cols)
-        risk_score = best_model_students.predict_proba(processed_data)[:, 1][0] * 10
+        # Preprocess student data
+        # Assuming you have a preprocess_student_data function
+        processed_data = preprocess_student_data(user_df, student_columns)
+        prediction = student_model.predict(processed_data)
     elif user_type == 'professional':
-        processed_data = preprocess_professional_data(input_df, professionals_cols)
-        risk_score = best_model_professionals.predict_proba(processed_data)[:, 1][0] * 10
+        # Preprocess professional data
+        # Assuming you have a preprocess_professional_data function
+        processed_data = preprocess_professional_data(user_df, professional_columns)
+        prediction = professional_model.predict(processed_data)
     else:
         return jsonify({'error': 'Invalid user type'}), 400
 
-    return jsonify({'prediction': risk_score})
+    # Assuming your models predict a single value (0 or 1 for binary classification)
+    # Adjust this based on your model's output
+    prediction_result = int(prediction[0])
+
+    return jsonify({'prediction': prediction_result})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
