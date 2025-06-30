@@ -24,16 +24,16 @@
 
         <!-- Recommended Articles Section -->
         <div class="resource-category">
-            <h3>Recommended Articles & Websites</h3>
-            {% if resources['Latest Articles'] %}
-                {% for item in resources['Latest Articles'] %}
+            <h3>Recommended Support & Awareness Platforms</h3>
+            {% if resources['Support & Awareness Platforms'] %}
+                {% for item in resources['Support & Awareness Platforms'] %}
                     <div class="resource-item">
                         <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
                         <p>{{ item.description }}</p>
                     </div>
                 {% endfor %}
             {% else %}
-                <p>No articles available at the moment.</p>
+                <p>No information available at the moment.</p>
             {% endif %}
         </div>
         

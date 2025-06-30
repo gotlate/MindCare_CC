@@ -18,12 +18,12 @@ SEMANTIC_SCHOLAR_API_URL = "https://api.semanticscholar.org/graph/v1/paper/searc
 # --- Helper Functions ---
 def load_resources(file_path):
     if not os.path.exists(file_path):
-        return {"Latest Articles": [], "Research & Studies": [], "Suggestions": []}
+        return {"Support & Awareness Platforms": [], "Research & Studies": [], "Suggestions": []}
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
-        return {"Latest Articles": [], "Research & Studies": [], "Suggestions": []}
+        return {"Support & Awareness Platforms": [], "Research & Studies": [], "Suggestions": []}
 
 def save_resources(file_path, resources):
     resources["Research & Studies"] = resources.get("Research & Studies", [])[:50] # Keep latest 50

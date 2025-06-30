@@ -8,17 +8,19 @@ PROFESSIONAL_RESOURCES_PATH = os.path.join(DATA_DIR, 'professional_resources.jso
 
 # --- Static Data ---
 STATIC_ARTICLES_STUDENT = [
-    {"title": "The Jed Foundation | Mental Health Resource Center", "url": "https://www.jedfoundation.org/", "description": "Provides resources, support, and guidance for teens and young adults."},
-    {"title": "Active Minds | Changing the Conversation About Mental Health", "url": "https://www.activeminds.org/", "description": "A leading nonprofit for young adult mental health advocacy and awareness."},
-    {"title": "Mindfulness for Students | Mindful.org", "url": "https://www.mindful.org/mindfulness-for-students/", "description": "Articles and guides on practicing mindfulness to reduce stress and improve focus."},
-    {"title": "NAMI | National Alliance on Mental Illness", "url": "https://www.nami.org/Your-Journey/Teens-Young-Adults", "description": "Support and resources for young adults facing mental health challenges."}
+    {"title": "The Jed Foundation", "url": "https://www.jedfoundation.org/", "description": "Provides resources, support, and guidance for teens and young adults."},
+    {"title": "Active Minds", "url": "https://www.activeminds.org/", "description": "A leading nonprofit organization for young adult mental health advocacy and awareness."},
+    {"title": "TalkCampus", "url": "https://www.talkcampus.com/", "description": "A global peer-support platform designed specifically for students to talk about their mental health anonymously and safely"},
+    {"title": "NAMI - National Alliance on Mental Illness", "url": "https://www.nami.org/Your-Journey/Teens-Young-Adults", "description": "Support and resources for young adults facing mental health challenges."},
+    {"title": "Praan", "url": "https://www.praanwellness.com/", "description": "A mental health platform offering therapy, support groups, and educational resources tailored to diverse emotional needs"}
 ]
 
 STATIC_ARTICLES_PROFESSIONAL = [
-    {"title": "Harvard Business Review - Mental Health Topic", "url": "https://hbr.org/topic/mental-health", "description": "In-depth articles on mental health, leadership, and workplace culture."},
-    {"title": "Mental Health America - Workplace Wellness", "url": "https://www.mhanational.org/workplace-wellness", "description": "Tools, resources, and research on creating mentally healthy workplaces."},
-    {"title": "Forbes - Mental Health in the Workplace", "url": "https://www.forbes.com/mental-health-in-the-workplace/", "description": "News and articles on the intersection of business and mental well-being."},
-    {"title": "OSHA - Workplace Stress", "url": "https://www.osha.gov/workplace-stress", "description": "Resources from the Occupational Safety and Health Administration on managing workplace stress."}
+    {"title": "Harvard Business Review - Mental Health", "url": "https://hbr.org/topic/mental-health", "description": "In-depth articles on mental health, leadership, and workplace culture."},
+    {"title": "The Mood Space", "url": "https://www.themoodspace.com/", "description" : "A mental health platform offering personalized online therapy and emotional well-being programs."},
+    {"title": "Deloitte - Mental health and  well-being in the workplace", "url": "deloitte_mental_health.pdf", "description": "A document about mental well being in the workplace"},
+    {"title": "OSHA - Workplace Stress", "url": "https://www.osha.gov/workplace-stress", "description": "Resources from the Occupational Safety and Health Administration on managing workplace stress."},
+    {"title": "mpowerminds - Mental Health in the Workplace", "url": "https://mpowerminds.com/blog/mental-health-in-the-workplace", "description": "A blog on mental health in the workplace"}
 ]
 
 SUGGESTIONS_STUDENT = [
@@ -129,12 +131,12 @@ SUGGESTIONS_PROFESSIONAL = [
 # --- Helper Functions ---
 def load_resources(file_path):
     if not os.path.exists(file_path):
-        return {"Latest Articles": [], "Research & Studies": [], "Suggestions": []}
+        return {"Support & Awareness Platforms": [], "Research & Studies": [], "Suggestions": []}
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
-        return {"Latest Articles": [], "Research & Studies": [], "Suggestions": []}
+        return {"Support & Awareness Platforms": [], "Research & Studies": [], "Suggestions": []}
 
 def save_resources(file_path, resources):
     with open(file_path, 'w', encoding='utf-8') as f:
@@ -143,14 +145,14 @@ def save_resources(file_path, resources):
 def populate_files():
     # Student resources
     student_resources = load_resources(STUDENT_RESOURCES_PATH)
-    student_resources["Latest Articles"] = STATIC_ARTICLES_STUDENT
+    student_resources["Support & Awareness Platforms"] = STATIC_ARTICLES_STUDENT
     student_resources["Suggestions"] = SUGGESTIONS_STUDENT
     save_resources(STUDENT_RESOURCES_PATH, student_resources)
     print("Populated student resources with static articles and a large pool of suggestions.")
 
     # Professional resources
     professional_resources = load_resources(PROFESSIONAL_RESOURCES_PATH)
-    professional_resources["Latest Articles"] = STATIC_ARTICLES_PROFESSIONAL
+    professional_resources["Support & Awareness Platforms"] = STATIC_ARTICLES_PROFESSIONAL
     professional_resources["Suggestions"] = SUGGESTIONS_PROFESSIONAL
     save_resources(PROFESSIONAL_RESOURCES_PATH, professional_resources)
     print("Populated professional resources with static articles and a large pool of suggestions.")
