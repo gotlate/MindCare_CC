@@ -7,6 +7,7 @@ import os
 import json
 import random
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 import atexit
 from research_scraper import update_research_papers # Import the function
 
@@ -266,8 +267,8 @@ def predict_professional():
 if __name__ == '__main__':
     # Initialize and start the scheduler
     scheduler = BackgroundScheduler()
-    # Schedule update_research_papers to run monthly
-    scheduler.add_job(func=update_research_papers, trigger="interval", months=1)
+    # Schedule update_research_papers to run monthly at midnight on the first day of the month
+    scheduler.add_job(func=update_research_papers, trigger=CronTrigger(day=1, hour=0, minute=0))
     scheduler.start()
 
     # Shut down the scheduler when the app exits
