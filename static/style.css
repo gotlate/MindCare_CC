@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+    --primary-color: #3a7bd5;
+    --secondary-color: #3aafa9;
+    --background-color: #f7fdfd;
+    --text-color: #2b3d50;
+    --light-text-color: #f0f0f0;
+    --white-color: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.container {
+    background: var(--white-color);
+    padding: 40px 60px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px var(--shadow-color);
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    transition: all 0.5s ease-in-out;
+    animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-section {
+    margin-bottom: 40px;
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    margin: 0 auto 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--white-color);
+    font-size: 40px;
+    font-weight: 700;
+    box-shadow: 0 5px 15px rgba(58, 175, 169, 0.4);
+}
+
+/* Simple logo: a stylized 'M' for MindCare */
+.logo::before {
+    content: 'M';
+}
+
+.main-title {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: 2px;
+}
+
+.tagline {
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: var(--text-color);
+    margin-top: 10px;
+}
+
+.user-selection h2 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 25px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.user-selection-btn {
+    background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+    color: var(--white-color);
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px var(--shadow-color);
+    font-weight: 600;
+}
+
+.user-selection-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(58, 123, 213, 0.3);
+}
+
+.user-selection-btn:active {
+    transform: translateY(-2px);
+}
+
+/* Form Styles */
+.form-container {
+    display: none; /* Hidden by default */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+form {
+    text-align: left;
+    margin-top: 30px;
+}
+
+form label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+form input,
+form select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+}
+
+form button[type="submit"] {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+    color: var(--white-color);
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+form button[type="submit"]:hover {
+    background: linear-gradient(120deg, #2c5a9c, #2c8b86);
+}
+
+#prediction-result {
+    margin-top: 30px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
