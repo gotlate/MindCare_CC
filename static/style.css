@@ -390,74 +390,105 @@ select:focus {
 }
 
 /* Result Page Styles */
-.result-container {
+.result-card {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    border-top: 8px solid; /* Default border top */
+    transition: border-color 0.5s ease;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.result-header {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 40px;
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
-.gauge-container {
-    width: 300px;
-    height: 150px;
+.result-header .section-title {
+    margin: 0;
+    font-size: 2.8em;
+}
+
+#result-icon {
+    font-size: 2.8em;
+    transition: color 0.5s ease;
+}
+
+/* Gauge Display */
+.gauge-display {
     position: relative;
-    overflow: hidden;
+    width: 250px;
+    height: 250px;
+    margin: 30px auto;
 }
 
-.gauge {
-    width: 100%;
-    height: 100%;
+.gauge-svg {
+    transform: rotate(-90deg); /* Start from the top */
 }
 
-.gauge-body {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    background-color: #e0e0e0;
-    border-radius: 150px 150px 0 0;
-    transform: rotate(180deg);
+.gauge-base {
+    stroke: #e6e6e6;
 }
 
-.gauge-fill {
-    width: 100%;
-    height: 100%;
+.gauge-progress {
+    stroke: #4CAF50; /* Default low-risk color */
+    stroke-linecap: round; /* Rounded ends for the progress */
+    transition: stroke-dashoffset 1.5s ease-out, stroke 0.5s ease;
+}
+
+.gauge-text {
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #4CAF50;
-    border-radius: 150px 150px 0 0;
-    transform-origin: center bottom;
-    transition: transform 1s ease-in-out;
-}
-
-.gauge-cover {
-    width: 260px;
-    height: 130px;
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background-color: #ffffff;
-    border-radius: 130px 130px 0 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
-    padding-bottom: 20px;
-    box-sizing: border-box;
+    gap: 5px;
 }
 
 .risk-score {
-    font-size: 3em;
-    font-weight: bold;
+    font-size: 4em;
+    font-weight: 700;
+    color: #1a2a3a;
 }
 
 .risk-category {
-    font-size: 1.5em;
-    color: #555;
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #5d6d7e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
+/* Risk Level Theming */
+.result-card.low-risk { border-color: #4CAF50; }
+.result-card.low-risk #result-icon { color: #4CAF50; }
+.result-card.low-risk .gauge-progress { stroke: #4CAF50; }
+
+.result-card.medium-risk { border-color: #FFC107; }
+.result-card.medium-risk #result-icon { color: #FFC107; }
+.result-card.medium-risk .gauge-progress { stroke: #FFC107; }
+
+.result-card.high-risk { border-color: #F44336; }
+.result-card.high-risk #result-icon { color: #F44336; }
+.result-card.high-risk .gauge-progress { stroke: #F44336; }
+
+/* Message and Buttons */
 .result-message {
-    font-size: 1.2em;
-    text-align: center;
-    max-width: 600px;
+    font-size: 1.15em;
+    color: #4a6582;
+    margin-bottom: 40px;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
 }
