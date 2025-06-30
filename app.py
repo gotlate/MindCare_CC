@@ -102,6 +102,130 @@ def preprocess_professional_data(df, required_columns):
 
 app = Flask(__name__)
 
+# --- Degree Mapping (New) ---
+degree_map = {
+    "DOCTOR": ["MBBS", "MD", "MS"],
+    "ENGINEER": ["B.Tech", "M.Tech", "BE", "ME"],
+    "TEACHER": ["B.Ed", "M.Ed", "B.A", "M.A"],
+    "LAWYER": ["LLB", "LLM"],
+    "ARCHITECT": ["B.Arch", "M.Arch"],
+    "ARTIST": ["BFA", "MFA"],
+    "ACCOUNTANT": ["B.Com", "M.Com", "CA"],
+    "SOFTWARE DEVELOPER": ["B.Tech", "M.Tech", "BCA", "MCA"],
+    "NURSE": ["B.Sc Nursing", "M.Sc Nursing"],
+    "JOURNALIST": ["BJMC", "MJMC"],
+    "SCIENTIST": ["B.Sc", "M.Sc", "PhD"],
+    "ENTREPRENEUR": ["BBA", "MBA"],
+    "CONSULTANT": ["MBA", "B.Com", "B.Tech"],
+    "MANAGER": ["BBA", "MBA", "M.Com"],
+    "DESIGNER": ["B.Des", "M.Des", "BFA"],
+    "RESEARCHER": ["M.Sc", "PhD"],
+    "POLICE OFFICER": ["B.A", "B.Sc"],
+    "ELECTRICIAN": ["Diploma in Electrical Engineering", "ITI Electrician"],
+    "MECHANIC": ["Diploma in Mechanical Engineering", "ITI Mechanic"],
+    "PLUMBER": ["ITI Plumber"],
+    "CARPENTER": ["ITI Carpenter"],
+    "CHEF": ["BHM", "Diploma in Culinary Arts"],
+    "PILOT": ["B.Sc Aviation", "Commercial Pilot License"],
+    "GRAPHIC DESIGNER": ["B.Des", "BFA", "Diploma in Graphic Design"],
+    "CONTENT WRITER": ["B.A", "M.A", "BJMC"],
+    "HR MANAGER": ["BBA", "MBA", "PGDM in HR"],
+    "CUSTOMER SUPPORT": ["Any Bachelor's Degree"],
+    "SALES EXECUTIVE": ["Any Bachelor's Degree"],
+    "MARKETING MANAGER": ["BBA", "MBA", "BMS"],
+    "FINANCIAL ADVISOR": ["B.Com", "MBA Finance", "CFA"],
+    "BANKER": ["B.Com", "BBA", "MBA Finance"],
+    "CIVIL SERVANT": ["Any Bachelor's Degree"],
+    "PHARMACIST": ["B.Pharm", "M.Pharm"],
+    "VETERINARIAN": ["BVSc & AH", "MVSc"],
+    "PHOTOGRAPHER": ["BFA Photography", "Diploma in Photography"],
+    "CHARTED ACCOUNTANT": ["CA"],
+    "ACTOR": ["B.A Theatre", "Diploma in Acting"],
+    "DANCER": ["B.A Dance", "Diploma in Dance"],
+    "MUSICIAN": ["B.A Music", "Diploma in Music"],
+    "SPORTSPERSON": ["B.P.Ed", "M.P.Ed"],
+    "FASHION DESIGNER": ["B.Des Fashion", "NIFT Diploma"],
+    "INTERIOR DESIGNER": ["B.Des Interior", "Diploma in Interior Design"],
+    "SOCIAL WORKER": ["BSW", "MSW"],
+    "COUNSELOR": ["B.A Psychology", "M.A Psychology"],
+    "PHYSIOTHERAPIST": ["BPT", "MPT"],
+    "OPTOMETRIST": ["B.Optom", "M.Optom"],
+    "DENTIST": ["BDS", "MDS"],
+    "AYURVEDIC DOCTOR": ["BAMS", "MD Ayurveda"],
+    "HOMOEOPATHIC DOCTOR": ["BHMS", "MD Homoeopathy"],
+    "PARAMEDIC": ["B.Sc Paramedical Technology", "Diploma in Paramedical Science"],
+    "YOGA INSTRUCTOR": ["Diploma in Yoga", "B.A Yoga"],
+    "LIBRARIAN": ["BLIS", "MLIS"],
+    "STATISTICIAN": ["B.Sc Statistics", "M.Sc Statistics"],
+    "ECONOMIST": ["B.A Economics", "M.A Economics"],
+    "HISTORIAN": ["B.A History", "M.A History"],
+    "ANTHROPOLOGIST": ["B.A Anthropology", "M.A Anthropology"],
+    "SOCIOLOGIST": ["B.A Sociology", "M.A Sociology"],
+    "GEOGRAPHER": ["B.Sc Geography", "M.Sc Geography"],
+    "GEOLOGIST": ["B.Sc Geology", "M.Sc Geology"],
+    "ENVIRONMENTAL SCIENTIST": ["B.Sc Environmental Science", "M.Sc Environmental Science"],
+    "AGRICULTURIST": ["B.Sc Agriculture", "M.Sc Agriculture"],
+    "FOOD SCIENTIST": ["B.Sc Food Technology", "M.Sc Food Technology"],
+    "NUTRITIONIST": ["B.Sc Nutrition", "M.Sc Nutrition"],
+    "DIETITIAN": ["B.Sc Dietetics", "M.Sc Dietetics"],
+    "SPORTS SCIENTIST": ["B.Sc Sports Science", "M.Sc Sports Science"],
+    "FORENSIC SCIENTIST": ["B.Sc Forensic Science", "M.Sc Forensic Science"],
+    "ARCHAEOLOGIST": ["B.A Archaeology", "M.A Archaeology"],
+    "CURATOR": ["M.A Museology"],
+    "CONSERVATIONIST": ["M.Sc Conservation"],
+    "URBAN PLANNER": ["B.Plan", "M.Plan"],
+    "LANDSCAPE ARCHITECT": ["B.L.Arch", "M.L.Arch"],
+    "TOUR GUIDE": ["Diploma in Tourism", "B.A Tourism"],
+    "HOTEL MANAGER": ["BHM", "Diploma in Hotel Management"],
+    "EVENT MANAGER": ["BBA Event Management", "Diploma in Event Management"],
+    "PUBLIC RELATIONS OFFICER": ["Bachelors in Mass Communication", "PG Diploma in PR"],
+    "ADVERTISING PROFESSIONAL": ["Bachelors in Advertising", "PG Diploma in Advertising"],
+    "FILMMAKER": ["B.A Film Studies", "Diploma in Filmmaking"],
+    "PHOTOGRAPHER": ["BFA Photography", "Diploma in Photography"],
+    "EDITOR": ["B.A English", "Diploma in Editing"],
+    "TRANSLATOR": ["B.A Linguistics", "Diploma in Translation"],
+    "TECHNICAL WRITER": ["B.Tech", "B.Sc", "B.A English"],
+    "WEB DEVELOPER": ["B.Tech CS", "BCA", "MCA", "Diploma in Web Development"],
+    "DATA SCIENTIST": ["B.Tech CS", "M.Sc Data Science", "B.Sc Statistics"],
+    "CYBERSECURITY ANALYST": ["B.Tech CS", "M.Tech Cybersecurity", "B.Sc IT"],
+    "CLOUD ENGINEER": ["B.Tech CS", "M.Tech Cloud Computing"],
+    "NETWORK ENGINEER": ["B.Tech ECE", "CCNA", "CCNP"],
+    "ROBOTICS ENGINEER": ["B.Tech Robotics", "M.Tech Robotics"],
+    "AEROSPACE ENGINEER": ["B.Tech Aerospace", "M.Tech Aerospace"],
+    "MARINE ENGINEER": ["B.Tech Marine", "ME Marine"],
+    "BIOTECHNOLOGIST": ["B.Tech Biotechnology", "M.Tech Biotechnology"],
+    "GENETICIST": ["B.Sc Genetics", "M.Sc Genetics", "PhD Genetics"],
+    "MICROBIOLOGIST": ["B.Sc Microbiology", "M.Sc Microbiology"],
+    "BIOCHEMIST": ["B.Sc Biochemistry", "M.Sc Biochemistry"],
+    "ZOOLOGIST": ["B.Sc Zoology", "M.Sc Zoology"],
+    "BOTANIST": ["B.Sc Botany", "M.Sc Botany"],
+    "ECOLOGIST": ["B.Sc Ecology", "M.Sc Ecology"],
+    "METEOROLOGIST": ["B.Sc Meteorology", "M.Sc Meteorology"],
+    "OCEANOGRAPHER": ["B.Sc Oceanography", "M.Sc Oceanography"],
+    "ASTRONOMER": ["B.Sc Astronomy", "M.Sc Astronomy", "PhD Astronomy"],
+    "PHYSICIST": ["B.Sc Physics", "M.Sc Physics", "PhD Physics"],
+    "CHEMIST": ["B.Sc Chemistry", "M.Sc Chemistry", "PhD Chemistry"],
+    "MATHEMATICIAN": ["B.Sc Mathematics", "M.Sc Mathematics", "PhD Mathematics"],
+    "GEOPHYSICIST": ["B.Sc Geophysics", "M.Sc Geophysics"],
+    "CARTOGRAPHER": ["B.Sc Cartography", "M.Sc Cartography"],
+    "GEOMATICS ENGINEER": ["B.Tech Geomatics", "M.Tech Geomatics"],
+    "MINING ENGINEER": ["B.Tech Mining", "M.Tech Mining"],
+    "PETROLEUM ENGINEER": ["B.Tech Petroleum", "M.Tech Petroleum"],
+    "CERAMIC ENGINEER": ["B.Tech Ceramic", "M.Tech Ceramic"],
+    "TEXTILE ENGINEER": ["B.Tech Textile", "M.Tech Textile"],
+    "PLASTIC ENGINEER": ["B.Tech Plastic", "M.Tech Plastic"],
+    "FOOD TECHNOLOGIST": ["B.Tech Food Technology", "M.Tech Food Technology"],
+    "DAIRY TECHNOLOGIST": ["B.Tech Dairy Technology", "M.Tech Dairy Technology"],
+    "SUGAR TECHNOLOGIST": ["B.Tech Sugar Technology", "M.Tech Sugar Technology"],
+    "LEATHER TECHNOLOGIST": ["B.Tech Leather Technology", "M.Tech Leather Technology"]
+}
+
+@app.route('/get_degrees', methods=['GET'])
+def get_degrees():
+    profession = request.args.get('profession', '').upper()
+    degrees = degree_map.get(profession, ["Other / Not Applicable", "Any Bachelor's Degree", "Any Master's Degree", "PhD"])
+    return jsonify({'degrees': degrees})
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -112,9 +236,8 @@ def predict_student():
     print('Student data received in backend:', data)
     user_df = pd.DataFrame([data])
     processed_data = preprocess_student_data(user_df, students_cols)
-    # Use predict_proba to get the probability of the positive class (index 1)
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(round(risk_score[0],1)) # Return as float for more precision
+    prediction_result = float(risk_score[0]) 
     return jsonify({'prediction': prediction_result})
 
 @app.route('/predict/professional', methods=['POST'])
@@ -123,9 +246,8 @@ def predict_professional():
     print('Professional data received in backend:', data)
     user_df = pd.DataFrame([data])
     processed_data = preprocess_professional_data(user_df, professionals_cols)
-    # Use predict_proba to get the probability of the positive class (index 1)
     risk_score = best_model_professionals.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(round(risk_score[0],1)) # Return as float for more precision
+    prediction_result = float(risk_score[0]) 
     return jsonify({'prediction': prediction_result})
 
 
