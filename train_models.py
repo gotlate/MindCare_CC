@@ -1,17 +1,19 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import confusion_matrix, precision_score, recall_score, roc_auc_score, precision_recall_curve,accuracy_score,roc_curve
-import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_curve, auc
+import xgboost as xgb
 import joblib
-import json
 import os
+import json
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Load the dataset
-df = pd.read_csv("final_depression_dataset_1.csv") 
+# --- Data Loading and Preprocessing ---
+print("Loading and preprocessing data...")
+df = pd.read_csv("final_depression_dataset_1.csv")
 
-# Separate the dataset into students and professionals
+# Separate the dataset
 students_df = df[df['Working Professional or Student'] == "Student"].copy()
 professionals_df = df[df['Working Professional or Student'] == "Working Professional"].copy()
 
@@ -23,168 +25,149 @@ professionals_df = professionals_df.drop(columns=["Academic Pressure", "CGPA", "
 students_df = students_df.dropna()
 professionals_df = professionals_df.dropna()
 
-# Define binary and non-binary columns for encoding
-binary_columns_students = ['Gender', 'Have you ever had suicidal thoughts ?', 'Family History of Mental Illness']
-non_binary_columns_students = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree']
-binary_columns_professionals = ['Gender', 'Have you ever had suicidal thoughts ?', 'Family History of Mental Illness']
-non_binary_columns_professionals = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree', 'Profession']
+# --- Feature Engineering and Encoding ---
 
-# Label encoding for binary columns and one-hot encoding for non-binary columns
+# Define mappings and columns
+binary_columns = ['Gender', 'Have you ever had suicidal thoughts ?', 'Family History of Mental Illness']
+ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
+ordinal_cols_students = ["Academic Pressure", "Study Satisfaction", "Financial Stress"]
+ordinal_cols_professionals = ["Work Pressure", "Job Satisfaction", "Financial Stress"]
+one_hot_cols_students = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree']
+one_hot_cols_professionals = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree', 'Profession']
+
 label_encoder = LabelEncoder()
-for col in binary_columns_students:
+
+# Process Students Data
+for col in binary_columns:
     students_df[col] = label_encoder.fit_transform(students_df[col])
+for col in ordinal_cols_students:
+    students_df[col] = students_df[col].map(ordinal_mapping)
+students_df = pd.get_dummies(students_df, columns=one_hot_cols_students, drop_first=True)
 
-students_df = pd.get_dummies(students_df, columns=non_binary_columns_students)
-
-for col in binary_columns_professionals:
+# Process Professionals Data
+for col in binary_columns:
     professionals_df[col] = label_encoder.fit_transform(professionals_df[col])
+for col in ordinal_cols_professionals:
+    professionals_df[col] = professionals_df[col].map(ordinal_mapping)
+professionals_df = pd.get_dummies(professionals_df, columns=one_hot_cols_professionals, drop_first=True)
 
-professionals_df = pd.get_dummies(professionals_df, columns=non_binary_columns_professionals)
-
-# Separate features and target variable for students and professionals
+# --- Prepare Data for Modeling ---
 X_students = students_df.drop(columns=["Depression", "Working Professional or Student", "Name"])
 y_students = label_encoder.fit_transform(students_df["Depression"])
+
 X_professionals = professionals_df.drop(columns=["Depression", "Working Professional or Student", "Name"])
 y_professionals = label_encoder.fit_transform(professionals_df["Depression"])
 
-# Split the data into training and test sets for both categories
-X_train_students, X_test_students, y_train_students, y_test_students = train_test_split(
-    X_students, y_students, test_size=0.2, random_state=42
-)
-X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(
-    X_professionals, y_professionals, test_size=0.3, random_state=42
-)
+# Align columns after one-hot encoding to ensure consistency
+student_cols = X_students.columns.tolist()
+professional_cols = X_professionals.columns.tolist()
 
-# Define a parameter grid for grid search
-param_grid = {
-    'n_estimators': [10,20,30,40,50],  # Fewer trees for a quicker test
-    'max_depth': [5,7,10],      # Smaller depth for faster results
-    'min_samples_split': [2,3,4]
+all_cols = sorted(list(set(student_cols + professional_cols)))
+
+X_students = X_students.reindex(columns=all_cols, fill_value=0)
+X_professionals = X_professionals.reindex(columns=all_cols, fill_value=0)
+
+# --- Model Training and Evaluation ---
+
+# Define XGBoost parameter grid
+param_grid_xgb = {
+    'n_estimators': [100, 200],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.05, 0.1],
+    'subsample': [0.7, 1.0],
+    'colsample_bytree': [0.7, 1.0]
 }
-# Grid search with class weights for students
-grid_search_stu = GridSearchCV(RandomForestClassifier(class_weight='balanced', random_state=42), param_grid, cv=5)
-grid_search_stu.fit(X_train_students, y_train_students)
+
+# --- Student Model ---
+print("
+--- Training and Evaluating Student Model (XGBoost) ---")
+X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
+xgb_stu = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
+grid_search_stu = GridSearchCV(estimator=xgb_stu, param_grid=param_grid_xgb, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
+grid_search_stu.fit(X_train_stu, y_train_stu)
 best_model_students = grid_search_stu.best_estimator_
+y_pred_stu = best_model_students.predict(X_test_stu)
+y_pred_proba_stu = best_model_students.predict_proba(X_test_stu)[:, 1]
 
-# Save the columns used during training (in your training script)
-#with open('stud_model.pkl', 'wb') as file:
- #   stud_data = {
-  #      "model" : best_model_students,
-   #     "features_list": X_students.columns.tolist()
-    #}
-    #pickle.dump(stud_data, file)
+print("
+Best Student Model Parameters:")
+print(grid_search_stu.best_params_)
+print("
+Student Model Performance Metrics:")
+print(f"Accuracy: {accuracy_score(y_test_stu, y_pred_stu):.4f}")
+fpr_stu, tpr_stu, _ = roc_curve(y_test_stu, y_pred_proba_stu)
+roc_auc_stu = auc(fpr_stu, tpr_stu)
+print(f"AUC Score: {roc_auc_stu:.4f}")
+print("Confusion Matrix:
+", confusion_matrix(y_test_stu, y_pred_stu))
+print("Classification Report:
+", classification_report(y_test_stu, y_pred_stu))
 
-# Grid search with class weights for professionals
-grid_search_pro = GridSearchCV(RandomForestClassifier(class_weight='balanced', random_state=42), param_grid, cv=5)
+# Plot and save ROC curve for Student Model
+plt.figure()
+plt.plot(fpr_stu, tpr_stu, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc_stu:.2f})')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve - Student Model')
+plt.legend(loc="lower right")
+plt.savefig('student_model_roc_curve.png')
+print("Student model ROC curve saved to student_model_roc_curve.png")
+plt.clf()
+
+# --- Professional Model ---
+print("
+--- Training and Evaluating Professional Model (XGBoost) ---")
+X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
+xgb_pro = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
+grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro, y_train_pro)
 best_model_professionals = grid_search_pro.best_estimator_
+y_pred_pro = best_model_professionals.predict(X_test_pro)
+y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
 
-#print("Best model: " ,  best_model_professionals)
+print("
+Best Professional Model Parameters:")
+print(grid_search_pro.best_params_)
+print("
+Professional Model Performance Metrics:")
+print(f"Accuracy: {accuracy_score(y_test_pro, y_pred_pro):.4f}")
+fpr_pro, tpr_pro, _ = roc_curve(y_test_pro, y_pred_proba_pro)
+roc_auc_pro = auc(fpr_pro, tpr_pro)
+print(f"AUC Score: {roc_auc_pro:.4f}")
+print("Confusion Matrix:
+", confusion_matrix(y_test_pro, y_pred_pro))
+print("Classification Report:
+", classification_report(y_test_pro, y_pred_pro))
 
-# with open('prof_model.pkl', 'wb') as file:
-#     pickle.dump({"model": best_model_professionals}, file)
+# Plot and save ROC curve for Professional Model
+plt.figure()
+plt.plot(fpr_pro, tpr_pro, color='darkgreen', lw=2, label=f'ROC curve (area = {roc_auc_pro:.2f})')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve - Professional Model')
+plt.legend(loc="lower right")
+plt.savefig('professional_model_roc_curve.png')
+print("Professional model ROC curve saved to professional_model_roc_curve.png")
+plt.clf()
 
+# --- Save Models and Columns ---
+models_dir = 'models'
+if not os.path.exists(models_dir):
+    os.makedirs(models_dir)
 
-#with open('prof_model.pkl', 'wb') as file:
- #   prof_data = {
-  #      "model": best_model_professionals,
-   #     "features_list":X_professionals.columns.tolist()  # Make sure this exists when saving
-    #}
-    #pickle.dump(prof_data, file)
+joblib.dump(best_model_students, os.path.join(models_dir, 'best_model_students.pkl'))
+joblib.dump(best_model_professionals, os.path.join(models_dir, 'best_model_professionals.pkl'))
+print(f"
+Models saved successfully in '{models_dir}' directory.")
 
-# Save the trained student model
-# Create the 'models' directory if it doesn't exist
-if not os.path.exists('models'):
-    os.makedirs('models')
-
-    # Save the trained student model
-joblib.dump(best_model_students, 'models/best_model_students.pkl')
-
-    # Save the list of columns for the student model
-with open('models/student_columns.json', 'w') as f:
-    json.dump(X_students.columns.tolist(), f)
-
-    # Save the trained professional model
-joblib.dump(best_model_professionals, 'models/best_model_professionals.pkl')
-
-    # Save the list of columns for the professional model
-with open('models/professional_columns.json', 'w') as f:
-    json.dump(X_professionals.columns.tolist(), f)
-
-
-
-# Predict probabilities for the test sets
-y_prob_stu = best_model_students.predict_proba(X_test_students)[:, 1]  # Probability of "Yes"
-y_prob_prof = best_model_professionals.predict_proba(X_test_pro)[:, 1]
-
-# Convert probabilities to risk scores (1-10 scale)
-risk_score_stu = y_prob_stu * 10
-risk_score_prof = y_prob_prof * 10
-
-# Plot the precision-recall curve for professionals to find the best threshold
-precision_prof, recall_prof, thresholds_prof = precision_recall_curve(y_test_pro, y_prob_prof)
-plt.plot(thresholds_prof, precision_prof[:-1], label="Precision")
-plt.plot(thresholds_prof, recall_prof[:-1], label="Recall")
-plt.xlabel("Threshold")
-plt.ylabel("Score")
-plt.legend()
-plt.title("Precision-Recall Curve for Working Professionals")
-plt.show()
-
-precision_stu, recall_stu, thresholds_stu = precision_recall_curve(y_test_students, y_prob_stu)
-plt.plot(thresholds_stu, precision_stu[:-1], label="Precision")
-plt.plot(thresholds_stu, recall_stu[:-1], label="Recall")
-plt.xlabel("Threshold")
-plt.ylabel("Score")
-plt.legend()
-plt.title("Precision-Recall Curve for Students")
-plt.show()
-
-# Based on the plot, select an optimal threshold (adjust the value if needed)
-optimal_threshold_prof = 0.6  # Example threshold; adjust based on the plot
-optimal_threshold_stu = 0.5
-# Convert probabilities to categorical "Yes/No" labels using the optimal threshold
-y_pred_stu = (y_prob_stu >= optimal_threshold_stu).astype(int)
-y_pred_prof = (y_prob_prof >= optimal_threshold_prof).astype(int)
-#y_pred_stu = best_model_students.predict(X_test_students)
-#y_pred_prof = best_model_professionals.predict(X_test_pro)
-
-# Evaluate models using confusion matrix, precision, recall, and ROC AUC
-conf_matrix_stu = confusion_matrix(y_test_students, y_pred_stu)
-conf_matrix_prof = confusion_matrix(y_test_pro, y_pred_prof)
-precision_stu = precision_score(y_test_students, y_pred_stu)
-precision_prof = precision_score(y_test_pro, y_pred_prof)
-recall_stu = recall_score(y_test_students, y_pred_stu)
-recall_prof = recall_score(y_test_pro, y_pred_prof)
-fpr_stu, tpr_stu, _ =roc_curve(y_test_students, y_prob_stu)
-fpr_prof, tpr_prof, _ = roc_curve(y_test_pro, y_prob_prof)
-roc_auc_stu = roc_auc_score(y_test_students, y_prob_stu)
-roc_auc_prof = roc_auc_score(y_test_pro, y_prob_prof)
-accuracy_stu = accuracy_score(y_test_students, y_pred_stu)
-accuracy_prof = accuracy_score(y_test_pro, y_pred_prof)
-
-# Print results
-print("Students Confusion Matrix:\n", conf_matrix_stu)
-print("Students Precision:", precision_stu)
-print("Students Recall:", recall_stu)
-print("Students ROC AUC:", roc_auc_stu)
-
-print("Professionals Confusion Matrix:\n", conf_matrix_prof)
-print("Professionals Precision:", precision_prof)
-print("Professionals Recall:", recall_prof)
-print("Professionals ROC AUC:", roc_auc_prof)
-
-print("Students Accuracy:", accuracy_stu)
-print("Professionals Accuracy:", accuracy_prof)
-
-plt.plot(fpr_stu, tpr_stu)
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-plt.title(" ROC Curve for Students")
-plt.show()
-
-plt.plot(fpr_prof, tpr_prof)
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-plt.title(" ROC Curve for Working Professionals")
-plt.show()
+with open(os.path.join(models_dir, 'student_columns.json'), 'w') as f:
+    json.dump(all_cols, f)
+with open(os.path.join(models_dir, 'professional_columns.json'), 'w') as f:
+    json.dump(all_cols, f)
+print(f"Column lists saved successfully in '{models_dir}' directory.")
