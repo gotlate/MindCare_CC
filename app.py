@@ -220,6 +220,18 @@ degree_map = {
     "LEATHER TECHNOLOGIST": ["B.Tech Leather Technology", "M.Tech Leather Technology"]
 }
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/student_form')
+def student_form_page():
+    return render_template('student_form.html', unique_cities=unique_cities, unique_student_degrees=unique_student_degrees)
+
+@app.route('/professional_form')
+def professional_form_page():
+    return render_template('professional_form.html', unique_cities=unique_cities, unique_professions=unique_professions)
+
 @app.route('/get_degrees', methods=['GET'])
 def get_degrees():
     profession = request.args.get('profession', '').upper()
@@ -232,18 +244,6 @@ def get_degrees():
         filtered_degrees = ["Other / Not Applicable"]
     return jsonify({'degrees': filtered_degrees})
 
-@app.route('/')
-def index():
-    return render_template('index.html', unique_cities=unique_cities, unique_student_degrees=unique_student_degrees, unique_professions=unique_professions)
-
-@app.route('/student_form')
-def student_form():
-    return render_template('student_form.html', unique_cities=unique_cities, unique_student_degrees=unique_student_degrees)
-
-@app.route('/professional_form')
-def professional_form():
-    return render_template('professional_form.html', unique_cities=unique_cities, unique_professions=unique_professions)
-
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
     data = request.get_json()
@@ -251,7 +251,7 @@ def predict_student():
     user_df = pd.DataFrame([data])
     processed_data = preprocess_student_data(user_df, students_cols)
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(risk_score[0]) 
+    prediction_result = float(risk_score[0])
     return jsonify({'prediction': prediction_result})
 
 @app.route('/predict/professional', methods=['POST'])
@@ -261,9 +261,8 @@ def predict_professional():
     user_df = pd.DataFrame([data])
     processed_data = preprocess_professional_data(user_df, professionals_cols)
     risk_score = best_model_professionals.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(risk_score[0]) 
+    prediction_result = float(risk_score[0])
     return jsonify({'prediction': prediction_result})
-
 
 if __name__ == '__main__':
     app.run(debug=True)
