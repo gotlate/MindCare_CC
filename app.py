@@ -5,7 +5,6 @@ import numpy as np
 import joblib
 import os
 import json
-from nicegui import ui, app
 
 # Add the directory containing the models to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'models')))
@@ -233,7 +232,18 @@ def get_degrees():
         filtered_degrees = ["Other / Not Applicable"]
     return jsonify({'degrees': filtered_degrees})
 
-# Existing prediction endpoints (keep these as they are)
+@app.route('/')
+def index():
+    return render_template('index.html', unique_cities=unique_cities, unique_student_degrees=unique_student_degrees, unique_professions=unique_professions)
+
+@app.route('/student_form')
+def student_form():
+    return render_template('student_form.html', unique_cities=unique_cities, unique_student_degrees=unique_student_degrees)
+
+@app.route('/professional_form')
+def professional_form():
+    return render_template('professional_form.html', unique_cities=unique_cities, unique_professions=unique_professions)
+
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
     data = request.get_json()
@@ -241,7 +251,7 @@ def predict_student():
     user_df = pd.DataFrame([data])
     processed_data = preprocess_student_data(user_df, students_cols)
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(risk_score[0])
+    prediction_result = float(risk_score[0]) 
     return jsonify({'prediction': prediction_result})
 
 @app.route('/predict/professional', methods=['POST'])
@@ -251,166 +261,9 @@ def predict_professional():
     user_df = pd.DataFrame([data])
     processed_data = preprocess_professional_data(user_df, professionals_cols)
     risk_score = best_model_professionals.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(risk_score[0])
+    prediction_result = float(risk_score[0]) 
     return jsonify({'prediction': prediction_result})
 
 
-# --- NiceGUI implementation --- #
-
-@ui.page('/')
-def index():
-    with ui.column().classes('container'):
-        ui.html('''
-            <div class="hero-section">
-                <div class="logo"></div>
-                <h1 class="main-title">MindCare</h1>
-                <p class="tagline">Your first step towards a healthier, happier mind.</p>
-            </div>
-        ''')
-        with ui.row():
-            ui.button('Student', on_click=lambda: ui.open('/student_form'), color='primary')
-            ui.button('Working Professional', on_click=lambda: ui.open('/professional_form'), color='primary')
-
-
-@ui.page('/student_form')
-def student_form():
-    student_data = {}
-
-    with ui.column().classes('container'):
-        ui.label('Student Mental Health Prediction').classes('h2')
-        with ui.form() as form:
-            ui.input('Name', required=True, on_change=lambda e: student_data.update({'Name': e.value})).props('pattern=[A-Za-z\s]+ oninput=this.value = this.value.toUpperCase()')
-            ui.select(unique_cities, label='City', on_change=lambda e: student_data.update({'City': e.value})).props('required')
-            ui.select(['Male', 'Female'], label='Gender', on_change=lambda e: student_data.update({'Gender': e.value})).props('required')
-            ui.number('Age', required=True, on_change=lambda e: student_data.update({'Age': int(e.value or 0)})).props('min=15 max=65')
-            ui.select(['Low', 'Medium', 'High'], label='Academic Pressure', on_change=lambda e: student_data.update({'Academic Pressure': e.value})).props('required')
-            ui.select(['Yes', 'No'], label='Have you ever had suicidal thoughts ?', on_change=lambda e: student_data.update({'Have you ever had suicidal thoughts ?': e.value})).props('required')
-            ui.select(['Yes', 'No'], label='Family History of Mental Illness', on_change=lambda e: student_data.update({'Family History of Mental Illness': e.value})).props('required')
-            ui.select(['Low', 'Medium', 'High'], label='Study Satisfaction', on_change=lambda e: student_data.update({'Study Satisfaction': e.value})).props('required')
-            ui.select(['Healthy', 'Average', 'Poor'], label='Dietary Habits', on_change=lambda e: student_data.update({'Dietary Habits': e.value})).props('required')
-            ui.select(['Below 5 hours', '5-8 hours', 'More than 8 hours'], label='Sleep Duration', on_change=lambda e: student_data.update({'Sleep Duration': e.value})).props('required')
-            ui.select(unique_student_degrees, label='Degree', on_change=lambda e: student_data.update({'Degree': e.value})).props('required')
-            ui.input('CGPA', required=True, on_change=lambda e: student_data.update({'CGPA': e.value})).props('pattern=^([0-9](\.\d{1,2})?|10(\.0{1,2})?)$ placeholder="e.g., 8.5, 9.0, 7"')
-            ui.number('Work/Study Hours', required=True, on_change=lambda e: student_data.update({'Work/Study Hours': int(e.value or 0)})).props('min=0 max=20')
-            ui.select(['Low', 'Medium', 'High'], label='Financial Stress', on_change=lambda e: student_data.update({'Financial Stress': e.value})).props('required')
-
-        prediction_result = ui.label()
-
-        async def predict():
-            # Basic client-side validation (can be improved)
-            if not all(student_data.values()):
-                prediction_result.text = 'Please fill in all fields.'
-                return
-
-            try:
-                response = await ui.run_javascript(f'''
-                    fetch('/predict/student', {{
-                        method: 'POST',
-                        headers: {{
-                            'Content-Type': 'application/json'
-                        }},
-                        body: JSON.stringify({student_data})
-                    }})
-                    .then(response => response.json())
-                    .then(data => data.prediction)
-                ''', respond=False)
-                #The above javascript  sends the data to flask endpoint, and recieves the prediction
-                #It then displays it without refreshing the page
-                prediction = await ui.promise(response)
-
-                prediction_result.text = f'Prediction Risk Score: {prediction:.2f} / 10'
-            except Exception as e:
-                prediction_result.text = f'Error: {str(e)}'
-
-        ui.button('Predict Student Mental Health', on_click=predict, color='primary')
-        ui.button('Back to Home', on_click=lambda: ui.open('/'))
-
-
-@ui.page('/professional_form')
-def professional_form():
-    professional_data = {}
-
-    with ui.column().classes('container'):
-        ui.label('Working Professional Mental Health Prediction').classes('h2')
-        with ui.form() as form:
-            ui.input('Name', required=True, on_change=lambda e: professional_data.update({'Name': e.value})).props('pattern=[A-Za-z\s]+ oninput=this.value = this.value.toUpperCase()')
-            ui.select(unique_cities, label='City', on_change=lambda e: professional_data.update({'City': e.value})).props('required')
-            ui.select(['Male', 'Female'], label='Gender', on_change=lambda e: professional_data.update({'Gender': e.value})).props('required')
-            ui.number('Age', required=True, on_change=lambda e: professional_data.update({'Age': int(e.value or 0)})).props('min=15 max=65')
-            ui.select(['Low', 'Medium', 'High'], label='Work Pressure', on_change=lambda e: professional_data.update({'Work Pressure': e.value})).props('required')
-            ui.select(['Yes', 'No'], label='Have you ever had suicidal thoughts ?', on_change=lambda e: professional_data.update({'Have you ever had suicidal thoughts ?': e.value})).props('required')
-            ui.select(['Yes', 'No'], label='Family History of Mental Illness', on_change=lambda e: professional_data.update({'Family History of Mental Illness': e.value})).props('required')
-            ui.select(['Low', 'Medium', 'High'], label='Job Satisfaction', on_change=lambda e: professional_data.update({'Job Satisfaction': e.value})).props('required')
-            ui.select(['Healthy', 'Average', 'Poor'], label='Dietary Habits', on_change=lambda e: professional_data.update({'Dietary Habits': e.value})).props('required')
-            ui.select(['Below 5 hours', '5-8 hours', 'More than 8 hours'], label='Sleep Duration', on_change=lambda e: professional_data.update({'Sleep Duration': e.value})).props('required')
-            ui.select(unique_professions, label='Profession', on_change=lambda e: professional_data.update({'Profession': e.value})).props('required')
-
-            #This will generate the degrees based on what the profession is, so this part does need to stay
-            async def update_degrees(profession):
-                response = await ui.run_javascript(f'''
-                    fetch('/get_degrees?profession={profession}', {{
-                        method: 'GET',
-                        headers: {{
-                            'Content-Type': 'application/json'
-                        }}
-                    }})
-                    .then(response => response.json())
-                    .then(data => data.degrees)
-                ''', respond=False)
-                degrees = await ui.promise(response)
-                degree_select.options = degrees
-                professional_data['Degree'] = degrees[0] if degrees else None  # set the first degree if available
-
-            profession_select = ui.select(unique_professions, label='Profession', on_change=lambda e: (
-                professional_data.update({'Profession': e.value}),
-                update_degrees(e.value)
-            )).props('required')
-
-            degree_select = ui.select([], label='Degree', on_change=lambda e: professional_data.update({'Degree': e.value})).props('required')
-
-            ui.number('Work/Study Hours', required=True, on_change=lambda e: professional_data.update({'Work/Study Hours': int(e.value or 0)})).props('min=0 max=20')
-            ui.select(['Low', 'Medium', 'High'], label='Financial Stress', on_change=lambda e: professional_data.update({'Financial Stress': e.value})).props('required')
-
-        prediction_result = ui.label()
-
-        async def predict():
-            if not all(professional_data.values()):
-                prediction_result.text = 'Please fill in all fields.'
-                return
-
-            try:
-                response = await ui.run_javascript(f'''
-                    fetch('/predict/professional', {{
-                        method: 'POST',
-                        headers: {{
-                            'Content-Type': 'application/json'
-                        }},
-                        body: JSON.stringify({professional_data})
-                    }})
-                    .then(response => response.json())
-                    .then(data => data.prediction)
-                ''', respond=False)
-
-                prediction = await ui.promise(response)
-
-                prediction_result.text = f'Prediction Risk Score: {prediction:.2f} / 10'
-            except Exception as e:
-                prediction_result.text = f'Error: {str(e)}'
-
-        ui.button('Predict Professional Mental Health', on_click=predict, color='primary')
-        ui.button('Back to Home', on_click=lambda: ui.open('/'))
-
-
-# Replace Flask's run with NiceGUI's
-#if __name__ in {'__main__', '__mp_main__'} or '--multiprocessing-fork' in sys.argv:
- #   ui.run(port=5000, reload=False)
-
-
-
-
-with app.app_context():
-    if __name__ == '__main__':
-        ui.run(port=5000, reload=False)
-
-#if __name__ == '__main__':
- #   app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
