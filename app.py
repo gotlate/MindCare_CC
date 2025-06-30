@@ -263,7 +263,7 @@ def predict_student():
         message = "Your risk score is high, which indicates a high probability of mental health distress. It is strongly recommended that you seek professional help. There are resources available to support you."
 
     return jsonify({
-        'redirect_url': url_for('result', risk_score=risk_score, risk_category=risk_category, message=message)
+        'redirect_url': url_for('result', risk_score=risk_score, risk_category=risk_category, message=message, user_type='student')
     })
 
 @app.route('/predict/professional', methods=['POST'])
@@ -285,7 +285,7 @@ def predict_professional():
         message = "Your risk score is high, which indicates a high probability of mental health distress. It is strongly recommended that you seek professional help. There are resources available to support you."
 
     return jsonify({
-        'redirect_url': url_for('result', risk_score=risk_score, risk_category=risk_category, message=message)
+        'redirect_url': url_for('result', risk_score=risk_score, risk_category=risk_category, message=message, user_type='professional')
     })
 
 
@@ -294,7 +294,8 @@ def result():
     risk_score = request.args.get('risk_score', 0, type=float)
     risk_category = request.args.get('risk_category', 'Low Risk')
     message = request.args.get('message', 'No message provided.')
-    return render_template('result.html', risk_score=risk_score, risk_category=risk_category, message=message)
+    user_type = request.args.get('user_type', 'student') # Default to student
+    return render_template('result.html', risk_score=risk_score, risk_category=risk_category, message=message, user_type=user_type)
 
 
 if __name__ == '__main__':

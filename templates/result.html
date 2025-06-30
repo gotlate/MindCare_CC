@@ -31,7 +31,11 @@
             </div>
 
             <div class="button-group">
-                <a href="{{ url_for('student_resources_page') }}" class="button primary">Explore Resources</a>
+                {% if user_type == 'professional' %}
+                    <a href="{{ url_for('professional_resources_page') }}" class="button primary">Explore Resources</a>
+                {% else %}
+                    <a href="{{ url_for('student_resources_page') }}" class="button primary">Explore Resources</a>
+                {% endif %}
                 <a href="{{ url_for('index') }}" class="button secondary">Back to Home</a>
             </div>
         </div>
