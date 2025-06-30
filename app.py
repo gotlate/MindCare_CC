@@ -259,7 +259,7 @@ def predict_professional():
 
 @ui.page('/')
 def index():
-    with ui.column(class_name='container'):
+    with ui.column().classes('container'):
         ui.html('''
             <div class="hero-section">
                 <div class="logo"></div>
@@ -276,7 +276,7 @@ def index():
 def student_form():
     student_data = {}
 
-    with ui.column(class_name='container'):
+    with ui.column().classes('container'):
         ui.label('Student Mental Health Prediction').classes('h2')
         with ui.form() as form:
             ui.input('Name', required=True, on_change=lambda e: student_data.update({'Name': e.value})).props('pattern=[A-Za-z\s]+ oninput=this.value = this.value.toUpperCase()')
@@ -330,7 +330,7 @@ def student_form():
 def professional_form():
     professional_data = {}
 
-    with ui.column(class_name='container'):
+    with ui.column().classes('container'):
         ui.label('Working Professional Mental Health Prediction').classes('h2')
         with ui.form() as form:
             ui.input('Name', required=True, on_change=lambda e: professional_data.update({'Name': e.value})).props('pattern=[A-Za-z\s]+ oninput=this.value = this.value.toUpperCase()')
