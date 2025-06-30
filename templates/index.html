@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>Welcome to My Web Application</h1>
-
+    
     <form id="prediction-form">
         <h2>Student Information</h2>
         <label for="student_name">Name:</label>
@@ -83,7 +83,85 @@
         </select><br><br>
 
         <button type="submit">Predict Student Mental Health</button>
+
+        <h2>Working Professional Information</h2>
+        <label for="professional_name">Name:</label>
+        <input type="text" id="professional_name" name="Name"><br><br>
+
+        <label for="professional_gender">Gender:</label>
+        <select id="professional_gender" name="Gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select><br><br>
+
+        <label for="professional_age">Age:</label>
+        <input type="number" id="professional_age" name="Age"><br><br>
+
+        <label for="professional_city">City:</label>
+        <input type="text" id="professional_city" name="City"><br><br>
+
+        <label for="professional_work_pressure">Work Pressure:</label>
+        <select id="professional_work_pressure" name="Work Pressure">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+        </select><br><br>
+
+        <label for="professional_suicidal_thoughts">Have you ever had suicidal thoughts ?</label>
+        <select id="professional_suicidal_thoughts" name="Have you ever had suicidal thoughts ?">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select><br><br>
+
+        <label for="professional_family_history">Family History of Mental Illness:</label>
+        <select id="professional_family_history" name="Family History of Mental Illness">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select><br><br>
+
+        <label for="professional_job_satisfaction">Job Satisfaction:</label>
+        <select id="professional_job_satisfaction" name="Job Satisfaction">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+        </select><br><br>
+
+        <label for="professional_dietary_habits">Dietary Habits:</label>
+        <select id="professional_dietary_habits" name="Dietary Habits">
+            <option value="Healthy">Healthy</option>
+            <option value="Average">Average</option>
+            <option value="Poor">Poor</option>
+        </select><br><br>
+
+        <label for="professional_sleep_duration">Sleep Duration:</label>
+        <select id="professional_sleep_duration" name="Sleep Duration">
+            <option value="Below 5 hours">Below 5 hours</option>
+            <option value="5-8 hours">5-8 hours</option>
+            <option value="More than 8 hours">More than 8 hours</option>
+        </select><br><br>
+
+        <label for="professional_degree">Degree:</label>
+        <input type="text" id="professional_degree" name="Degree"><br><br>
+
+        <label for="professional_work_study_hours">Work/Study Hours:</label>
+        <input type="number" id="professional_work_study_hours" name="Work/Study Hours"><br><br>
+
+        <label for="professional_financial_stress">Financial Stress:</label>
+        <select id="professional_financial_stress" name="Financial Stress">
+
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+        </select><br><br>
+
+        <label for="professional_profession">Profession:</label>
+        <input type="text" id="professional_profession" name="Profession"><br><br>
+
+        <button type="submit">Predict Professional Mental Health</button>
     </form>
+
+    <div id="prediction-result"></div>
+
 </body>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 </html>
