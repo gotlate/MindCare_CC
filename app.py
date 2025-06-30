@@ -5,6 +5,7 @@ import numpy as np
 import joblib
 import os
 import json
+import random
 
 # Add the directory containing the models to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'models')))
@@ -178,12 +179,9 @@ def load_resources(resource_type):
     try:
         with open(file_path, 'r') as f:
             return json.load(f)
-    except FileNotFoundError:
-        print(f"Error: {file_path} not found.")
-        return {}
-    except json.JSONDecodeError:
-        print(f"Error: Could not decode JSON from {file_path}.")
-        return {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        print(f"Error: Could not load or decode JSON from {file_path}.")
+        return {"Latest Articles": [], "Research & Studies": [], "Suggestions": []}
 
 
 @app.route('/')
@@ -215,6 +213,20 @@ def student_resources_page():
 def professional_resources_page():
     resources = load_resources('professional')
     return render_template('professional_resources.html', resources=resources)
+
+@app.route('/get_suggestions/<user_type>')
+def get_suggestions(user_type):
+    if user_type not in ['student', 'professional']:
+        return jsonify({"error": "Invalid user type"}), 400
+    
+    resources = load_resources(user_type)
+    suggestions = resources.get("Suggestions", [])
+    
+    if len(suggestions) < 5:
+        return jsonify(suggestions)
+        
+    random_suggestions = random.sample(suggestions, 5)
+    return jsonify(random_suggestions)
 
 @app.route('/get_degrees', methods=['GET'])
 def get_degrees():

@@ -8,32 +8,54 @@
 </head>
 <body>
     <div class="resources-container">
-        <h2 class="section-title">Working Professional Mental Health Resources</h2>
+        <h2 class="section-title">Professional Mental Health Resources</h2>
 
-        {% if resources %}
-            {% for category, items in resources.items() %}
-                <div class="resource-category">
-                    <h3>{{ category }}</h3>
-                    {% if items %}
-                        {% for item in items %}
-                            <div class="resource-item">
-                                <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
-                                <p>{{ item.description }}</p>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <p>No resources found in this category.</p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No professional resources available at the moment. Please check back later!</p>
-        {% endif %}
+        <!-- Suggestions Section -->
+        <div class="resource-category">
+            <h3>Suggestions for Well-being</h3>
+            <div id="suggestions-list">
+                <!-- Suggestions will be loaded here by JavaScript -->
+                <p>Loading suggestions...</p>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="shuffle-suggestions" class="button primary">Shuffle Suggestions</button>
+            </div>
+        </div>
+
+        <!-- Recommended Articles Section -->
+        <div class="resource-category">
+            <h3>Recommended Articles & Websites</h3>
+            {% if resources['Latest Articles'] %}
+                {% for item in resources['Latest Articles'] %}
+                    <div class="resource-item">
+                        <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+                        <p>{{ item.description }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No articles available at the moment.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Latest Research Section -->
+        <div class="resource-category">
+            <h3>Latest Research</h3>
+            {% if resources['Research & Studies'] %}
+                {% for item in resources['Research & Studies'] %}
+                    <div class="resource-item">
+                        <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+                        <p>{{ item.description }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No research papers available. Run the scraper to populate this section.</p>
+            {% endif %}
+        </div>
 
         <div class="button-group" style="margin-top: 30px; text-align: center;">
             <a href="/professional_dashboard" class="button secondary">Back to Dashboard</a>
-            <a href="/" class="button secondary">Back to Home</a>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
