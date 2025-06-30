@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const studentButton = document.getElementById('student-button');
     const professionalButton = document.getElementById('professional-button');
+    const userTypeSelection = document.getElementById('user-type-selection');
     const studentFormContainer = document.getElementById('student-form-container');
     const professionalFormContainer = document.getElementById('professional-form-container');
     const professionalProfessionSelect = document.getElementById('professional_profession');
@@ -11,16 +12,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function showStudentForm() {
         studentFormContainer.style.display = 'block';
         professionalFormContainer.style.display = 'none';
+        userTypeSelection.style.display = 'none';
         predictionResultDiv.innerText = '';
     }
 
     function showProfessionalForm() {
         studentFormContainer.style.display = 'none';
         professionalFormContainer.style.display = 'block';
+        userTypeSelection.style.display = 'none';
         predictionResultDiv.innerText = '';
         updateProfessionalDegreeDropdown();
     }
-
+    function showUserTypeSelection() {
+        studentFormContainer.style.display = 'none';
+        professionalFormContainer.style.display = 'none';
+        userTypeSelection.style.display = 'flex';
+        predictionResultDiv.innerText = '';
+    }
     // Attach event listeners to buttons
     studentButton.addEventListener('click', showStudentForm);
     professionalButton.addEventListener('click', showProfessionalForm);
@@ -29,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleSubmit(event, form, endpoint) {
         event.preventDefault();
 
+        // Client-side validation before sending
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -60,10 +69,12 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             predictionResultDiv.innerText = 'Prediction Risk Score: ' + data.prediction.toFixed(2) + ' / 10';
+            showUserTypeSelection()
         })
         .catch(error => {
             console.error('Error:', error);
             predictionResultDiv.innerText = 'Error: ' + error.message;
+            showUserTypeSelection()
         });
     }
 
@@ -82,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Function to update professional degree dropdown based on profession input
+    // Function to update professional degree dropdown based on profession selection
     function updateProfessionalDegreeDropdown() {
         const profession = professionalProfessionSelect.value;
 
@@ -107,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Attach event listener to profession dropdown (only for professional form)
+    // Attach event listener to the professional profession select dropdown
     if (professionalProfessionSelect) {
         professionalProfessionSelect.addEventListener('change', updateProfessionalDegreeDropdown);
     }
