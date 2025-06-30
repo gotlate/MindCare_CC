@@ -1,37 +1,59 @@
 document.addEventListener('DOMContentLoaded', function() {
     const studentButton = document.getElementById('student-button');
     const professionalButton = document.getElementById('professional-button');
-    const userTypeSelection = document.getElementById('user-type-selection');
-    const studentFormContainer = document.getElementById('student-form-container');
-    const professionalFormContainer = document.getElementById('professional-form-container');
-    const professionalProfessionSelect = document.getElementById('professional_profession');
-    const professionalDegreeSelect = document.getElementById('professional_degree');
-    const predictionResultDiv = document.getElementById('prediction-result');
+    let userTypeSelection = document.getElementById('user-type-selection');
+    let studentFormContainer = document.getElementById('student-form-container');
+    let professionalFormContainer = document.getElementById('professional-form-container');
+
+    let studentForm = document.getElementById('student-prediction-form');
+    let professionalForm = document.getElementById('professional-prediction-form');
+    let predictionResultDiv = document.getElementById('prediction-result');
+
+    let professionalProfessionSelect = document.getElementById('professional_profession');
+    let professionalDegreeSelect = document.getElementById('professional_degree');
+
+    function ensureElementsExist() {
+        userTypeSelection = document.getElementById('user-type-selection');
+        studentFormContainer = document.getElementById('student-form-container');
+        professionalFormContainer = document.getElementById('professional-form-container');
+        studentForm = document.getElementById('student-prediction-form');
+        professionalForm = document.getElementById('professional-prediction-form');
+        predictionResultDiv = document.getElementById('prediction-result');
+        professionalProfessionSelect = document.getElementById('professional_profession');
+        professionalDegreeSelect = document.getElementById('professional_degree');
+    }
 
     // Function to show/hide forms
     function showStudentForm() {
-        studentFormContainer.style.display = 'block';
-        professionalFormContainer.style.display = 'none';
-        userTypeSelection.style.display = 'none';
-        predictionResultDiv.innerText = '';
+        ensureElementsExist()
+        if(studentFormContainer) studentFormContainer.style.display = 'block';
+        if(professionalFormContainer) professionalFormContainer.style.display = 'none';
+        if(userTypeSelection) userTypeSelection.style.display = 'none';
+        if(predictionResultDiv) predictionResultDiv.innerText = '';
     }
 
     function showProfessionalForm() {
-        studentFormContainer.style.display = 'none';
-        professionalFormContainer.style.display = 'block';
-        userTypeSelection.style.display = 'none';
-        predictionResultDiv.innerText = '';
+         ensureElementsExist()
+        if(studentFormContainer) studentFormContainer.style.display = 'none';
+        if(professionalFormContainer) professionalFormContainer.style.display = 'block';
+        if(userTypeSelection) userTypeSelection.style.display = 'none';
+        if(predictionResultDiv) predictionResultDiv.innerText = '';
         updateProfessionalDegreeDropdown();
     }
     function showUserTypeSelection() {
-        studentFormContainer.style.display = 'none';
-        professionalFormContainer.style.display = 'none';
-        userTypeSelection.style.display = 'flex';
-        predictionResultDiv.innerText = '';
+         ensureElementsExist()
+        if(studentFormContainer) studentFormContainer.style.display = 'none';
+        if(professionalFormContainer) professionalFormContainer.style.display = 'none';
+        if(userTypeSelection) userTypeSelection.style.display = 'flex';
+        if(predictionResultDiv) predictionResultDiv.innerText = '';
     }
     // Attach event listeners to buttons
-    studentButton.addEventListener('click', showStudentForm);
-    professionalButton.addEventListener('click', showProfessionalForm);
+    if (studentButton) {
+        studentButton.addEventListener('click', showStudentForm);
+    }
+    if (professionalButton) {
+        professionalButton.addEventListener('click', showProfessionalForm);
+    }
 
     // Function to handle form submission (reusable)
     function handleSubmit(event, form, endpoint) {
@@ -68,25 +90,23 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
-            predictionResultDiv.innerText = 'Prediction Risk Score: ' + data.prediction.toFixed(2) + ' / 10';
+            if(predictionResultDiv) predictionResultDiv.innerText = 'Prediction Risk Score: ' + data.prediction.toFixed(2) + ' / 10';
             showUserTypeSelection()
         })
         .catch(error => {
             console.error('Error:', error);
-            predictionResultDiv.innerText = 'Error: ' + error.message;
+            if(predictionResultDiv) predictionResultDiv.innerText = 'Error: ' + error.message;
             showUserTypeSelection()
         });
     }
 
     // Attach event listeners to forms
-    const studentForm = document.getElementById('student-prediction-form');
     if (studentForm) {
         studentForm.addEventListener('submit', (event) => {
             handleSubmit(event, studentForm, '/predict/student');
         });
     }
 
-    const professionalForm = document.getElementById('professional-prediction-form');
     if (professionalForm) {
         professionalForm.addEventListener('submit', (event) => {
             handleSubmit(event, professionalForm, '/predict/professional');
@@ -95,6 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to update professional degree dropdown based on profession selection
     function updateProfessionalDegreeDropdown() {
+        if(!professionalProfessionSelect || !professionalDegreeSelect) return; // Exit if they dont exist yet
+
         const profession = professionalProfessionSelect.value;
 
         if (profession) {
@@ -102,12 +124,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     professionalDegreeSelect.innerHTML = '<option value="">Select Degree</option>';
-                    data.degrees.forEach(degree => {
-                        const option = document.createElement('option');
-                        option.value = degree;
-                        option.textContent = degree;
-                        professionalDegreeSelect.appendChild(option);
-                    });
+                    if (data.degrees && data.degrees.length > 0) {
+                        data.degrees.forEach(degree => {
+                            const option = document.createElement('option');
+                            option.value = degree;
+                            option.textContent = degree;
+                            professionalDegreeSelect.appendChild(option);
+                        });
+                    } else {
+                        const fallbackOption = document.createElement('option');
+                        fallbackOption.value = 'Other';
+                        fallbackOption.textContent = 'Other / Not Applicable';
+                        professionalDegreeSelect.appendChild(fallbackOption);
+                    }
                 })
                 .catch(error => {
                     console.error('Error fetching degrees:', error);
@@ -119,7 +148,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Attach event listener to the professional profession select dropdown
-    if (professionalProfessionSelect) {
+    if(professionalProfessionSelect) {
         professionalProfessionSelect.addEventListener('change', updateProfessionalDegreeDropdown);
     }
+    ensureElementsExist();
 });
