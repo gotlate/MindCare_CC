@@ -6,12 +6,12 @@
     <title>MindCare - Assessment Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js is no longer needed for this design -->
 </head>
 <body>
     <div class="main-container">
         <div class="result-card" id="result-card">
-            <div class.result-header">
+            <div class="result-header">
                 <i id="result-icon" class="fas"></i>
                 <h2 class="section-title" style="margin-bottom: 20px;">Your Result</h2>
             </div>
@@ -33,9 +33,10 @@
 
             <div class="breakdown-section">
                 <h3>Risk Factors Breakdown</h3>
-                <p class="chart-subtitle">This chart shows the factors that had the biggest impact on your score.</p>
-                <div class="chart-container">
-                    <canvas id="feature-chart"></canvas>
+                <p class="chart-subtitle">This shows the factors with the biggest impact on your score.</p>
+                <!-- This is the new container for the animated list -->
+                <div class="factors-list-container">
+                    <ul id="factors-list"></ul>
                 </div>
             </div>
 
@@ -56,76 +57,38 @@
             const riskCategory = "{{ risk_category }}";
             const featureContributions = JSON.parse('{{ feature_contributions | safe }}');
             
-            // --- New Chart Logic ---
-            // 1. Filter out zero-contribution features and sort by absolute impact
+            // --- New Animated List Logic ---
+            const factorsList = document.getElementById('factors-list');
+
             const sortedFeatures = Object.entries(featureContributions)
-                .filter(([key, value]) => Math.abs(value) > 0.001) // Ignore negligible values
+                .filter(([key, value]) => Math.abs(value) > 0.001)
                 .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
 
-            // 2. Prepare data for the chart
-            const labels = sortedFeatures.map(item => item[0].replace(/_/g, ' '));
-            const data = sortedFeatures.map(item => item[1]);
-            
-            // 3. Create dynamic background colors based on contribution
-            const backgroundColors = data.map(value => value > 0 ? 'rgba(244, 67, 54, 0.7)' : 'rgba(76, 175, 80, 0.7)');
-            const borderColors = data.map(value => value > 0 ? 'rgba(244, 67, 54, 1)' : 'rgba(76, 175, 80, 1)');
-
-            const ctx = document.getElementById('feature-chart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Impact on Risk Score',
-                        data: data,
-                        backgroundColor: backgroundColors,
-                        borderColor: borderColors,
-                        borderWidth: 1,
-                        borderRadius: 4,
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            ticks: {
-                                font: {
-                                    size: 10,
-                                }
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                font: {
-                                    size: 12,
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw;
-                                    const prefix = value > 0 ? 'Increases risk by' : 'Decreases risk by';
-                                    return `${prefix}: ${Math.abs(value).toFixed(3)}`;
-                                }
-                            }
-                        }
-                    },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeInOutCubic'
-                    }
-                }
+            sortedFeatures.forEach((feature, index) => {
+                const [name, value] = feature;
+                
+                const listItem = document.createElement('li');
+                
+                const isIncrease = value > 0;
+                listItem.className = isIncrease ? 'risk-increase' : 'risk-decrease';
+                
+                const factorName = document.createElement('span');
+                factorName.className = 'factor-name';
+                factorName.textContent = name.replace(/_/g, ' ');
+                
+                const factorValue = document.createElement('span');
+                factorValue.className = 'factor-value';
+                factorValue.textContent = (isIncrease ? '+' : '') + value.toFixed(2);
+                
+                listItem.appendChild(factorName);
+                listItem.appendChild(factorValue);
+                
+                // Staggered animation effect
+                setTimeout(() => {
+                    factorsList.appendChild(listItem);
+                }, index * 150);
             });
-            // --- End of New Chart Logic ---
+            // --- End of New Animated List Logic ---
 
             // (The rest of the gauge animation script remains the same)
             const resultCard = document.getElementById('result-card');

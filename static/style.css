@@ -430,7 +430,7 @@ select:focus {
 }
 
 .gauge-svg {
-    transform: rotate(-90deg); /* Start from the top */
+    transform: rotate(-90deg);
 }
 
 .gauge-base {
@@ -438,8 +438,8 @@ select:focus {
 }
 
 .gauge-progress {
-    stroke: #4CAF50; /* Default low-risk color */
-    stroke-linecap: round; /* Rounded ends for the progress */
+    stroke: #4CAF50;
+    stroke-linecap: round;
     transition: stroke-dashoffset 1.5s ease-out, stroke 0.5s ease;
 }
 
@@ -493,7 +493,7 @@ select:focus {
     margin-right: auto;
 }
 
-/* Breakdown Section */
+/* --- New Animated Breakdown Styles --- */
 .breakdown-section {
     margin-top: 40px;
     border-top: 1px solid #e0e0e0;
@@ -512,10 +512,64 @@ select:focus {
     margin-bottom: 25px;
 }
 
-.chart-container {
-    position: relative;
-    height: 280px; /* Increased height for better visibility */
-    width: 100%;
-    padding: 0 10px; /* Add some padding */
-    box-sizing: border-box;
+.factors-list-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#factors-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#factors-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    border-left: 5px solid;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slide-in 0.5s ease-out forwards;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#factors-list li:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.factor-name {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.factor-value {
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+#factors-list li.risk-increase {
+    border-color: #F44336;
+}
+#factors-list li.risk-increase .factor-value {
+    color: #F44336;
+}
+
+#factors-list li.risk-decrease {
+    border-color: #4CAF50;
+}
+#factors-list li.risk-decrease .factor-value {
+    color: #4CAF50;
+}
+
+@keyframes slide-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
