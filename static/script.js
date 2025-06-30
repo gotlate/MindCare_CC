@@ -6,7 +6,10 @@ document.getElementById('prediction-form').addEventListener('submit', function(e
 
     // Convert form data to JSON
     Array.from(form.elements).forEach(input => {
-        if (input.name) {
+ if (input.name) {
+            if (input.type === 'radio' && !input.checked) {
+                return; // Skip unchecked radio buttons
+            }
             jsonData[input.name] = input.value;
         }
     });
