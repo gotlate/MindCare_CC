@@ -9,41 +9,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const professionalForm = document.getElementById('professional-prediction-form');
     const predictionResultDiv = document.getElementById('prediction-result');
 
-    const professionalProfessionInput = document.getElementById('professional_profession');
+    const professionalProfessionSelect = document.getElementById('professional_profession');
     const professionalDegreeSelect = document.getElementById('professional_degree');
-    const studentDegreeSelect = document.getElementById('student_degree');
-
-    // Populate static student degrees
-    const studentDegrees = ["B.Tech", "B.Sc", "B.Com", "B.A", "M.Tech", "M.Sc", "M.Com", "M.A", "PhD"];
-    function populateStudentDegrees() {
-        if (studentDegreeSelect) {
-            studentDegreeSelect.innerHTML = '<option value="">Select Degree</option>';
-            studentDegrees.forEach(degree => {
-                const option = document.createElement('option');
-                option.value = degree;
-                option.textContent = degree;
-                studentDegreeSelect.appendChild(option);
-            });
-        }
-    }
-    populateStudentDegrees(); // Populate on load
 
     // Event listeners for user type selection buttons
     if (studentButton) {
         studentButton.addEventListener('click', function() {
-            if (userTypeSelection) userTypeSelection.style.display = 'none';
-            if (studentFormContainer) studentFormContainer.style.display = 'block';
-            if (professionalFormContainer) professionalFormContainer.style.display = 'none';
+            userTypeSelection.style.display = 'none';
+            studentFormContainer.style.display = 'block';
+            professionalFormContainer.style.display = 'none';
             predictionResultDiv.innerText = ''; // Clear previous results
         });
     }
 
     if (professionalButton) {
         professionalButton.addEventListener('click', function() {
-            if (userTypeSelection) userTypeSelection.style.display = 'none';
-            if (studentFormContainer) studentFormContainer.style.display = 'none';
-            if (professionalFormContainer) professionalFormContainer.style.display = 'block';
+            userTypeSelection.style.display = 'none';
+            studentFormContainer.style.display = 'none';
+            professionalFormContainer.style.display = 'block';
             predictionResultDiv.innerText = ''; // Clear previous results
+            // Trigger degree dropdown update when professional form is shown
+            updateProfessionalDegreeDropdown();
         });
     }
 
@@ -53,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Client-side validation before sending
         if (!form.checkValidity()) {
-            // If the form is invalid, the browser's built-in validation messages will show
+            form.reportValidity(); // This will show the browser's built-in validation messages
             return;
         }
 
@@ -83,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (predictionResultDiv) {
-                predictionResultDiv.innerText = 'Prediction Result: ' + data.prediction.toFixed(2);
+                predictionResultDiv.innerText = 'Prediction Risk Score: ' + data.prediction.toFixed(2) + ' / 10';
             }
         })
         .catch(error => {
@@ -108,11 +94,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Function to update professional degree dropdown based on profession input
+    // Function to update professional degree dropdown based on profession selection
     function updateProfessionalDegreeDropdown() {
-        const profession = professionalProfessionInput.value.trim().toUpperCase();
-        if (profession.length > 2) { // Only fetch if profession has at least 3 characters
-            fetch(`/get_degrees?profession=${encodeURIComponent(profession)})`)
+        const profession = professionalProfessionSelect.value;
+        
+        if (profession) { // Only fetch if a profession is selected
+            fetch(`/get_degrees?profession=${encodeURIComponent(profession)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (professionalDegreeSelect) {
@@ -125,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 professionalDegreeSelect.appendChild(option);
                             });
                         } else {
-                            // Fallback if no specific degrees found
                             const fallbackOption = document.createElement('option');
                             fallbackOption.value = 'Other';
                             fallbackOption.textContent = 'Other / Not Applicable';
@@ -140,15 +126,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
         } else {
-            // Clear or set default if profession input is too short
             if (professionalDegreeSelect) {
-                professionalDegreeSelect.innerHTML = '<option value="">Enter Profession to see degrees</option>';
+                professionalDegreeSelect.innerHTML = '<option value="">Select Profession first</option>';
             }
         }
     }
-
-    // Attach event listener to the professional profession input
-    if (professionalProfessionInput) {
-        professionalProfessionInput.addEventListener('input', updateProfessionalDegreeDropdown);
+    
+    // Attach event listener to the professional profession select dropdown
+    if(professionalProfessionSelect) {
+        professionalProfessionSelect.addEventListener('change', updateProfessionalDegreeDropdown);
     }
 });

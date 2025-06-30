@@ -34,63 +34,9 @@
             <label for="student_city">City:</label>
             <select id="student_city" name="City" required>
                 <option value="">Select City</option>
-                <option value="Mumbai">Mumbai</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Bangalore">Bangalore</option>
-                <option value="Hyderabad">Hyderabad</option>
-                <option value="Ahmedabad">Ahmedabad</option>
-                <option value="Chennai">Chennai</option>
-                <option value="Kolkata">Kolkata</option>
-                <option value="Surat">Surat</option>
-                <option value="Pune">Pune</option>
-                <option value="Jaipur">Jaipur</option>
-                <option value="Lucknow">Lucknow</option>
-                <option value="Kanpur">Kanpur</option>
-                <option value="Nagpur">Nagpur</option>
-                <option value="Visakhapatnam">Visakhapatnam</option>
-                <option value="Indore">Indore</option>
-                <option value="Thane">Thane</option>
-                <option value="Bhopal">Bhopal</option>
-                <option value="Patna">Patna</option>
-                <option value="Vadodara">Vadodara</option>
-                <option value="Ghaziabad">Ghaziabad</option>
-                <option value="Ludhiana">Ludhiana</option>
-                <option value="Agra">Agra</option>
-                <option value="Nashik">Nashik</option>
-                <option value="Faridabad">Faridabad</option>
-                <option value="Meerut">Meerut</option>
-                <option value="Rajkot">Rajkot</option>
-                <option value="Varanasi">Varanasi</option>
-                <option value="Srinagar">Srinagar</option>
-                <option value="Aurangabad">Aurangabad</option>
-                <option value="Dhanbad">Dhanbad</option>
-                <option value="Amritsar">Amritsar</option>
-                <option value="Allahabad">Allahabad</option>
-                <option value="Howrah">Howrah</option>
-                <option value="Ranchi">Ranchi</option>
-                <option value="Gwalior">Gwalior</option>
-                <option value="Jabalpur">Jabalpur</option>
-                <option value="Coimbatore">Coimbatore</option>
-                <option value="Vijayawada">Vijayawada</option>
-                <option value="Jodhpur">Jodhpur</option>
-                <option value="Madurai">Madurai</option>
-                <option value="Raipur">Raipur</option>
-                <option value="Kota">Kota</option>
-                <option value="Guwahati">Guwahati</option>
-                <option value="Chandigarh">Chandigarh</option>
-                <option value="Mysore">Mysore</option>
-                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
-                <option value="Bhubaneswar">Bhubaneswar</option>
-                <option value="Salem">Salem</option>
-                <option value="Tiruchirappalli">Tiruchirappalli</option>
-                <option value="Bareilly">Bareilly</option>
-                <option value="Aligarh">Aligarh</option>
-                <option value="Moradabad">Moradabad</option>
-                <option value="Amravati">Amravati</option>
-                <option value="Jamshedpur">Jamshedpur</option>
-                <option value="Bhilai">Bhilai</option>
-                <option value="Cuttack">Cuttack</option>
-                <option value="Kochi">Kochi</option>
+                {% for city in unique_cities %}
+                <option value="{{ city }}">{{ city }}</option>
+                {% endfor %}
             </select><br><br>
 
             <label for="student_academic_pressure">Academic Pressure:</label>
@@ -142,7 +88,9 @@
             <label for="student_degree">Degree:</label>
             <select id="student_degree" name="Degree" required>
                 <option value="">Select Degree</option>
-                <!-- Options will be populated by JavaScript -->
+                {% for degree in unique_student_degrees %}
+                <option value="{{ degree }}">{{ degree }}</option>
+                {% endfor %}
             </select><br><br>
 
             <label for="student_cgpa">CGPA:</label>
@@ -182,63 +130,9 @@
             <label for="professional_city">City:</label>
             <select id="professional_city" name="City" required>
                 <option value="">Select City</option>
-                <option value="Mumbai">Mumbai</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Bangalore">Bangalore</option>
-                <option value="Hyderabad">Hyderabad</option>
-                <option value="Ahmedabad">Ahmedabad</option>
-                <option value="Chennai">Chennai</option>
-                <option value="Kolkata">Kolkata</option>
-                <option value="Surat">Surat</option>
-                <option value="Pune">Pune</option>
-                <option value="Jaipur">Jaipur</option>
-                <option value="Lucknow">Lucknow</option>
-                <option value="Kanpur">Kanpur</option>
-                <option value="Nagpur">Nagpur</option>
-                <option value="Visakhapatnam">Visakhapatnam</option>
-                <option value="Indore">Indore</option>
-                <option value="Thane">Thane</option>
-                <option value="Bhopal">Bhopal</option>
-                <option value="Patna">Patna</option>
-                <option value="Vadodara">Vadodara</option>
-                <option value="Ghaziabad">Ghaziabad</option>
-                <option value="Ludhiana">Ludhiana</option>
-                <option value="Agra">Agra</option>
-                <option value="Nashik">Nashik</option>
-                <option value="Faridabad">Faridabad</option>
-                <option value="Meerut">Meerut</option>
-                <option value="Rajkot">Rajkot</option>
-                <option value="Varanasi">Varanasi</option>
-                <option value="Srinagar">Srinagar</option>
-                <option value="Aurangabad">Aurangabad</option>
-                <option value="Dhanbad">Dhanbad</option>
-                <option value="Amritsar">Amritsar</option>
-                <option value="Allahabad">Allahabad</option>
-                <option value="Howrah">Howrah</option>
-                <option value="Ranchi">Ranchi</option>
-                <option value="Gwalior">Gwalior</option>
-                <option value="Jabalpur">Jabalpur</option>
-                <option value="Coimbatore">Coimbatore</option>
-                <option value="Vijayawada">Vijayawada</option>
-                <option value="Jodhpur">Jodhpur</option>
-                <option value="Madurai">Madurai</option>
-                <option value="Raipur">Raipur</option>
-                <option value="Kota">Kota</option>
-                <option value="Guwahati">Guwahati</option>
-                <option value="Chandigarh">Chandigarh</option>
-                <option value="Mysore">Mysore</option>
-                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
-                <option value="Bhubaneswar">Bhubaneswar</option>
-                <option value="Salem">Salem</option>
-                <option value="Tiruchirappalli">Tiruchirappalli</option>
-                <option value="Bareilly">Bareilly</option>
-                <option value="Aligarh">Aligarh</option>
-                <option value="Moradabad">Moradabad</option>
-                <option value="Amravati">Amravati</option>
-                <option value="Jamshedpur">Jamshedpur</option>
-                <option value="Bhilai">Bhilai</option>
-                <option value="Cuttack">Cuttack</option>
-                <option value="Kochi">Kochi</option>
+                {% for city in unique_cities %}
+                <option value="{{ city }}">{{ city }}</option>
+                {% endfor %}
             </select><br><br>
 
             <label for="professional_work_pressure">Work Pressure:</label>
@@ -305,7 +199,12 @@
             </select><br><br>
 
             <label for="professional_profession">Profession:</label>
-            <input type="text" id="professional_profession" name="Profession" required oninput="this.value = this.value.toUpperCase(); updateProfessionalDegreeDropdown();"><br><br>
+            <select id="professional_profession" name="Profession" required onchange="updateProfessionalDegreeDropdown()">
+                <option value="">Select Profession</option>
+                {% for profession in unique_professions %}
+                <option value="{{ profession }}">{{ profession }}</option>
+                {% endfor %}
+            </select><br><br>
 
             <button type="submit">Predict Professional Mental Health</button>
         </form>
