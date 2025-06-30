@@ -46,6 +46,7 @@ try:
     df_full = pd.read_csv("final_depression_dataset_1.csv")
     unique_cities = sorted(df_full['City'].dropna().unique().tolist())
     unique_student_degrees = sorted(df_full[df_full['Working Professional or Student'] == 'Student']['Degree'].dropna().unique().tolist())
+    # This is the source of truth for the dropdown and the map keys
     unique_professions = sorted(df_full[df_full['Working Professional or Student'] == 'Working Professional']['Profession'].dropna().unique().tolist())
     all_unique_degrees_from_dataset = sorted(df_full['Degree'].dropna().unique().tolist())
 except FileNotFoundError:
@@ -114,10 +115,43 @@ def preprocess_professional_data(df, required_columns):
 
 app = Flask(__name__)
 
-# --- Degree Mapping ---
+# --- Corrected Degree Mapping ---
+# The keys of this map now correspond to the actual values in the dataset's 'Profession' column.
 degree_map = {
-    "DOCTOR": ["MBBS", "MD", "MS"], "ENGINEER": ["B.Tech", "M.Tech", "BE", "ME"], "TEACHER": ["B.Ed", "M.Ed", "B.A", "M.A", "Any Bachelor's Degree", "Any Master's Degree", "PhD"], "LAWYER": ["LLB", "LLM"], "ARCHITECT": ["B.Arch", "M.Arch"], "ARTIST": ["BFA", "MFA"], "ACCOUNTANT": ["B.Com", "M.Com", "CA"], "SOFTWARE DEVELOPER": ["B.Tech", "M.Tech", "BCA", "MCA"], "NURSE": ["B.Sc Nursing", "M.Sc Nursing"], "JOURNALIST": ["BJMC", "MJMC"], "SCIENTIST": ["B.Sc", "M.Sc", "PhD"], "ENTREPRENEUR": ["BBA", "MBA"], "CONSULTANT": ["MBA", "B.Com", "B.Tech"], "MANAGER": ["BBA", "MBA", "M.Com"], "DESIGNER": ["B.Des", "M.Des", "BFA"], "RESEARCHER": ["M.Sc", "PhD"], "POLICE OFFICER": ["B.A", "B.Sc"], "ELECTRICIAN": ["Diploma in Electrical Engineering", "ITI Electrician"], "MECHANIC": ["Diploma in Mechanical Engineering", "ITI Mechanic"], "PLUMBER": ["ITI Plumber"], "CARPENTER": ["ITI Carpenter"], "CHEF": ["BHM", "Diploma in Culinary Arts"], "PILOT": ["B.Sc Aviation", "Commercial Pilot License"], "GRAPHIC DESIGNER": ["B.Des", "BFA", "Diploma in Graphic Design"], "CONTENT WRITER": ["B.A", "M.A", "BJMC"], "HR MANAGER": ["BBA", "MBA", "PGDM in HR"], "CUSTOMER SUPPORT": ["Any Bachelor's Degree"], "SALES EXECUTIVE": ["Any Bachelor's Degree"], "MARKETING MANAGER": ["BBA", "MBA", "BMS"], "FINANCIAL ADVISOR": ["B.Com", "MBA Finance", "CFA"], "BANKER": ["B.Com", "BBA", "MBA Finance"], "CIVIL SERVANT": ["Any Bachelor's Degree"], "PHARMACIST": ["B.Pharm", "M.Pharm"], "VETERINARIAN": ["BVSc & AH", "MVSc"], "PHOTOGRAPHER": ["BFA Photography", "Diploma in Photography"], "CHARTED ACCOUNTANT": ["CA"], "ACTOR": ["B.A Theatre", "Diploma in Acting"], "DANCER": ["B.A Dance", "Diploma in Dance"], "MUSICIAN": ["B.A Music", "Diploma in Music"], "SPORTSPERSON": ["B.P.Ed", "M.P.Ed"], "FASHION DESIGNER": ["B.Des Fashion", "NIFT Diploma"], "INTERIOR DESIGNER": ["B.Des Interior", "Diploma in Interior Design"], "SOCIAL WORKER": ["BSW", "MSW"], "COUNSELOR": ["B.A Psychology", "M.A Psychology"], "PHYSIOTHERAPIST": ["BPT", "MPT"], "OPTOMETRIST": ["B.Optom", "M.Optom"], "DENTIST": ["BDS", "MDS"], "AYURVEDIC DOCTOR": ["BAMS", "MD Ayurveda"], "HOMOEOPATHIC DOCTOR": ["BHMS", "MD Homoeopathy"], "PARAMEDIC": ["B.Sc Paramedical Technology", "Diploma in Paramedical Science"], "YOGA INSTRUCTOR": ["Diploma in Yoga", "B.A Yoga"], "LIBRARIAN": ["BLIS", "MLIS"], "STATISTICIAN": ["B.Sc Statistics", "M.Sc Statistics"], "ECONOMIST": ["B.A Economics", "M.A Economics"], "HISTORIAN": ["B.A History", "M.A History"], "ANTHROPOLOGIST": ["B.A Anthropology", "M.A Anthropology"], "SOCIOLOGIST": ["B.A Sociology", "M.A Sociology"], "GEOGRAPHER": ["B.Sc Geography", "M.Sc Geography"], "GEOLOGIST": ["B.Sc Geology", "M.Sc Geology"], "ENVIRONMENTAL SCIENTIST": ["B.Sc Environmental Science", "M.Sc Environmental Science"], "AGRICULTURIST": ["B.Sc Agriculture", "M.Sc Agriculture"], "FOOD SCIENTIST": ["B.Tech Food Technology", "M.Tech Food Technology"], "DAIRY TECHNOLOGIST": ["B.Tech Dairy Technology", "M.Tech Dairy Technology"], "SUGAR TECHNOLOGIST": ["B.Tech Sugar Technology", "M.Tech Sugar Technology"], "LEATHER TECHNOLOGIST": ["B.Tech Leather Technology", "M.Tech Leather Technology"]
+    'Accountant': ['B.Com', 'M.Com', 'CA'],
+    'Architect': ['B.Arch', 'M.Arch'],
+    'Business Analyst': ['BBA', 'MBA', 'B.Tech'],
+    'Chef': ['BHM', 'Diploma in Culinary Arts'],
+    'Civil Engineer': ['B.Tech', 'M.Tech', 'BE', 'ME'],
+    'Consultant': ['MBA', 'B.Com', 'B.Tech'],
+    'Content Writer': ['B.A', 'M.A', 'BJMC'],
+    'Customer Support': ["Any Bachelor's Degree"],
+    'Data Scientist': ['B.Tech', 'M.Tech', 'M.Sc'],
+    'Digital Marketer': ['BBA', 'MBA', 'BMS'],
+    'Doctor': ['MBBS', 'MD', 'MS'],
+    'Educational Consultant': ['B.Ed', 'M.Ed', 'PhD'],
+    'Engineer': ['B.Tech', 'M.Tech', 'BE', 'ME'],
+    'Entrepreneur': ['BBA', 'MBA'],
+    'Financial Analyst': ['B.Com', 'MBA Finance', 'CFA'],
+    'Graphic Designer': ['B.Des', 'BFA', 'Diploma in Graphic Design'],
+    'HR Manager': ['BBA', 'MBA', 'PGDM in HR'],
+    'Investment Banker': ['MBA Finance', 'CFA'],
+    'Judge': ['LLB', 'LLM'],
+    'Lawyer': ['LLB', 'LLM'],
+    'Manager': ['BBA', 'MBA', 'M.Com'],
+    'Marketing Manager': ['BBA', 'MBA', 'BMS'],
+    'Mechanical Engineer': ['B.Tech', 'M.Tech', 'BE', 'ME'],
+    'Pharmacist': ['B.Pharm', 'M.Pharm'],
+    'Pilot': ['B.Sc Aviation', 'Commercial Pilot License'],
+    'Research Analyst': ['M.Sc', 'PhD', 'B.A', 'B.Sc'],
+    'Researcher': ['M.Sc', 'PhD'],
+    'Sales Executive': ["Any Bachelor's Degree"],
+    'Software Engineer': ['B.Tech', 'M.Tech', 'BCA', 'MCA'],
+    'Teacher': ['B.Ed', 'M.Ed', 'B.A', 'M.A', 'PhD'],
+    'Travel Consultant': ['Diploma in Travel and Tourism', 'B.A'],
+    'UX/UI Designer': ['B.Des', 'M.Des']
 }
+# --- End of Corrected Map ---
 
 # --- Resource Loading Functions ---
 def load_resources(resource_type):
@@ -146,6 +180,7 @@ def student_form_page():
 
 @app.route('/professional_form')
 def professional_form_page():
+    # The 'unique_professions' list is the source of truth for the dropdown
     return render_template('professional_form.html', unique_cities=unique_cities, unique_professions=unique_professions)
 
 @app.route('/student_resources')
@@ -160,10 +195,15 @@ def professional_resources_page():
 
 @app.route('/get_degrees', methods=['GET'])
 def get_degrees():
-    profession = request.args.get('profession', '').upper()
+    # This now performs a direct, case-sensitive lookup
+    profession = request.args.get('profession', '')
     possible_degrees = degree_map.get(profession, ["Other / Not Applicable", "Any Bachelor's Degree", "Any Master's Degree", "PhD"])
+    
+    # Filter against the degrees that are actually in the dataset
     filtered_degrees = [d for d in possible_degrees if d in all_unique_degrees_from_dataset]
+    
     if not filtered_degrees:
+        # Fallback if no specific degree matches dataset degrees for the profession
         filtered_degrees = ["Other / Not Applicable"]
     return jsonify({'degrees': filtered_degrees})
 
@@ -175,7 +215,6 @@ def predict_student():
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
     risk_score = round(float(risk_score[0]), 2)
 
-    # Calculate SHAP values
     shap_values = student_explainer.shap_values(processed_data)
     if isinstance(shap_values, list):
         shap_values_instance = shap_values[1][0]
@@ -184,23 +223,15 @@ def predict_student():
 
     raw_contributions = {feature: float(value) for feature, value in zip(students_cols, shap_values_instance)}
     
-    # --- Corrected Feature Contribution Logic ---
     feature_contributions = {}
-    categorical_features_map = {
-        "City": "City", "Dietary Habits": "Dietary Habits", 
-        "Sleep Duration": "Sleep Duration", "Degree": "Degree"
-    }
-    
+    categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree"]
     for key, value in data.items():
-        if key in categorical_features_map:
-            # Construct the one-hot encoded key and get its value
+        if key in categorical_features:
             one_hot_key = f"{key}_{value}"
             if one_hot_key in raw_contributions:
                 feature_contributions[key] = raw_contributions[one_hot_key]
         elif key in raw_contributions:
-            # Handle numerical and simple binary features
             feature_contributions[key] = raw_contributions[key]
-    # --- End of Corrected Logic ---
     
     if risk_score <= 4:
         risk_category = "Low Risk"
@@ -224,7 +255,6 @@ def predict_professional():
     risk_score = best_model_professionals.predict_proba(processed_data)[:, 1] * 10
     risk_score = round(float(risk_score[0]), 2)
 
-    # Calculate SHAP values
     shap_values = professional_explainer.shap_values(processed_data)
     if isinstance(shap_values, list):
         shap_values_instance = shap_values[1][0]
@@ -233,23 +263,15 @@ def predict_professional():
         
     raw_contributions = {feature: float(value) for feature, value in zip(professionals_cols, shap_values_instance)}
     
-    # --- Corrected Feature Contribution Logic ---
     feature_contributions = {}
-    categorical_features_map = {
-        "City": "City", "Dietary Habits": "Dietary Habits", 
-        "Sleep Duration": "Sleep Duration", "Degree": "Degree", "Profession": "Profession"
-    }
-
+    categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"]
     for key, value in data.items():
-        if key in categorical_features_map:
-            # Construct the one-hot encoded key and get its value
+        if key in categorical_features:
             one_hot_key = f"{key}_{value}"
             if one_hot_key in raw_contributions:
                 feature_contributions[key] = raw_contributions[one_hot_key]
         elif key in raw_contributions:
-            # Handle numerical and simple binary features
             feature_contributions[key] = raw_contributions[key]
-    # --- End of Corrected Logic ---
 
     if risk_score <= 4:
         risk_category = "Low Risk"
