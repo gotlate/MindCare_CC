@@ -79,8 +79,7 @@ param_grid_xgb = {
 }
 
 # --- Student Model ---
-print("
---- Training and Evaluating Student Model (XGBoost) ---")
+print("--- Training and Evaluating Student Model (XGBoost) ---")
 X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
 xgb_stu = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
 grid_search_stu = GridSearchCV(estimator=xgb_stu, param_grid=param_grid_xgb, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
@@ -89,19 +88,15 @@ best_model_students = grid_search_stu.best_estimator_
 y_pred_stu = best_model_students.predict(X_test_stu)
 y_pred_proba_stu = best_model_students.predict_proba(X_test_stu)[:, 1]
 
-print("
-Best Student Model Parameters:")
+print("Best Student Model Parameters:")
 print(grid_search_stu.best_params_)
-print("
-Student Model Performance Metrics:")
+print("Student Model Performance Metrics:")
 print(f"Accuracy: {accuracy_score(y_test_stu, y_pred_stu):.4f}")
 fpr_stu, tpr_stu, _ = roc_curve(y_test_stu, y_pred_proba_stu)
 roc_auc_stu = auc(fpr_stu, tpr_stu)
 print(f"AUC Score: {roc_auc_stu:.4f}")
-print("Confusion Matrix:
-", confusion_matrix(y_test_stu, y_pred_stu))
-print("Classification Report:
-", classification_report(y_test_stu, y_pred_stu))
+print("Confusion Matrix:", confusion_matrix(y_test_stu, y_pred_stu))
+print("Classification Report:", classification_report(y_test_stu, y_pred_stu))
 
 # Plot and save ROC curve for Student Model
 plt.figure()
@@ -118,8 +113,7 @@ print("Student model ROC curve saved to student_model_roc_curve.png")
 plt.clf()
 
 # --- Professional Model ---
-print("
---- Training and Evaluating Professional Model (XGBoost) ---")
+print("--- Training and Evaluating Professional Model (XGBoost) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 xgb_pro = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
 grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
@@ -128,19 +122,15 @@ best_model_professionals = grid_search_pro.best_estimator_
 y_pred_pro = best_model_professionals.predict(X_test_pro)
 y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
 
-print("
-Best Professional Model Parameters:")
+print("Best Professional Model Parameters:")
 print(grid_search_pro.best_params_)
-print("
-Professional Model Performance Metrics:")
+print("Professional Model Performance Metrics:")
 print(f"Accuracy: {accuracy_score(y_test_pro, y_pred_pro):.4f}")
 fpr_pro, tpr_pro, _ = roc_curve(y_test_pro, y_pred_proba_pro)
 roc_auc_pro = auc(fpr_pro, tpr_pro)
 print(f"AUC Score: {roc_auc_pro:.4f}")
-print("Confusion Matrix:
-", confusion_matrix(y_test_pro, y_pred_pro))
-print("Classification Report:
-", classification_report(y_test_pro, y_pred_pro))
+print("Confusion Matrix:", confusion_matrix(y_test_pro, y_pred_pro))
+print("Classification Report:", classification_report(y_test_pro, y_pred_pro))
 
 # Plot and save ROC curve for Professional Model
 plt.figure()
@@ -163,8 +153,7 @@ if not os.path.exists(models_dir):
 
 joblib.dump(best_model_students, os.path.join(models_dir, 'best_model_students.pkl'))
 joblib.dump(best_model_professionals, os.path.join(models_dir, 'best_model_professionals.pkl'))
-print(f"
-Models saved successfully in '{models_dir}' directory.")
+print(f"Models saved successfully in '{models_dir}' directory.")
 
 with open(os.path.join(models_dir, 'student_columns.json'), 'w') as f:
     json.dump(all_cols, f)
