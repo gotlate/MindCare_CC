@@ -1,240 +1,216 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-
-:root {
-    --primary-color: #3a7bd5;
-    --secondary-color: #3aafa9;
-    --background-color: #f7fdfd;
-    --text-color: #2b3d50;
-    --light-text-color: #f0f0f0;
-    --white-color: #ffffff;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-}
-
-* {
-    box-sizing: border-box;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-}
-
-body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
-    color: var(--text-color);
+    background-color: #f4f7f6;
+    color: #333;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    overflow-x: hidden;
+    line-height: 1.6;
 }
 
-.container {
-    background: var(--white-color);
-    padding: 40px 60px;
-    border-radius: 20px;
-    box-shadow: 0 15px 35px var(--shadow-color);
-    width: 100%;
-    max-width: 800px;
+.main-container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     text-align: center;
-    transition: all 0.5s ease-in-out;
-    animation: fadeIn 1s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
+    max-width: 900px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .hero-section {
     margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
 }
 
-.logo {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+.hero-section .logo {
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
-    margin: 0 auto 20px auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--white-color);
-    font-size: 40px;
-    font-weight: 700;
-    box-shadow: 0 5px 15px rgba(58, 175, 169, 0.4);
-}
-
-/* Simple logo: a stylized 'M' for MindCare */
-.logo::before {
-    content: 'M';
+    object-fit: cover;
+    margin-bottom: 20px;
+    border: 5px solid #4CAF50; /* Accent color for the logo */
 }
 
 .main-title {
-    font-size: 4rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    letter-spacing: 2px;
+    font-size: 2.8em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
 }
 
 .tagline {
-    font-size: 1.2rem;
-    font-weight: 300;
-    color: var(--text-color);
-    margin-top: 10px;
+    font-size: 1.2em;
+    color: #7f8c8d;
+    margin-bottom: 30px;
 }
 
-.user-selection {
-    font-size: 1.5rem;
-    font-weight: 400;
-    margin-bottom: 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.button-container {
+.selection-container {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 30px;
+    flex-wrap: wrap;
 }
 
-.user-selection-btn {
-    background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
-    color: var(--white-color);
+.selection-card {
+    background-color: #e8f5e9; /* Light green background */
+    border: 1px solid #c8e6c9;
+    border-radius: 10px;
+    padding: 30px;
+    text-decoration: none;
+    color: #2c3e50;
+    flex: 1;
+    min-width: 280px;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.selection-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.selection-card h2 {
+    font-size: 1.8em;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.selection-card p {
+    font-size: 1em;
+    color: #555;
+    line-height: 1.5;
+}
+
+/* Form Specific Styles */
+.form-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+select {
+    width: calc(100% - 20px);
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    margin-top: 5px;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+select:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+}
+
+.button {
+    display: inline-block;
+    padding: 12px 25px;
     border: none;
-    padding: 15px 30px;
-    font-size: 1.1rem;
-    font-family: 'Poppins', sans-serif;
-    border-radius: 50px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px var(--shadow-color);
-    font-weight: 600;
-    text-decoration: none; /* To remove underline from links */
+    font-size: 1.1em;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 20px;
 }
 
-.user-selection-btn:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(58, 123, 213, 0.3);
+.button.primary {
+    background-color: #4CAF50;
+    color: white;
 }
 
-.user-selection-btn:active {
+.button.primary:hover {
+    background-color: #45a049;
     transform: translateY(-2px);
 }
 
-/* Form Styles */
-.form-container {
-    display: block; /* Visible by default now */
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-form {
-    text-align: left;
-    margin-top: 30px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
-    gap: 20px;
-}
-
-form label {
-    font-weight: 600;
-    display: block;
-    margin-bottom: 5px;
-    color: var(--primary-color);
-}
-
-form input,
-form select {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 8px;
+.button.secondary {
+    background-color: #f0f0f0;
+    color: #333;
     border: 1px solid #ddd;
-    font-family: 'Poppins', sans-serif;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
+    margin-left: 15px;
 }
 
-form input:focus,
-form select:focus {
-    border-color: var(--secondary-color);
-    outline: none; /* Remove the default focus outline */
-    box-shadow: 0 2px 5px var(--shadow-color);
+.button.secondary:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
 }
 
-form input:hover,
-form select:hover {
-    border-color: var(--primary-color);
-}
-
-form button[type="submit"] {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
-    color: var(--white-color);
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    grid-column: 1 / -1; /* Make the button span all columns */
-}
-
-form button[type="submit"]:hover {
-    background: linear-gradient(120deg, #2c5a9c, #2c8b86);
-}
-
-#prediction-result {
+.prediction-result {
     margin-top: 30px;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--primary-color);
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #2c3e50;
+    background-color: #e8f5e9;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #c8e6c9;
 }
 
-/* Back to Home button */
-.back-button {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 20px;
-    background-color: var(--secondary-color);
-    color: var(--white-color);
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-}
-
-.back-button:hover {
-    background-color: #2c8b86;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 600px) {
-    .container {
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-container, .form-container {
         padding: 20px;
+        margin: 20px;
     }
 
     .main-title {
-        font-size: 3rem;
+        font-size: 2em;
     }
 
-    .button-container {
+    .tagline {
+        font-size: 1em;
+    }
+
+    .selection-container {
         flex-direction: column;
+        gap: 20px;
+    }
+
+    .selection-card {
+        min-width: unset;
         width: 100%;
     }
 
-    .user-selection-btn {
+    .button {
         width: 100%;
-    }
-
-    form {
-        grid-template-columns: 1fr; /* Stack form elements on smaller screens */
+        margin-left: 0;
+        margin-bottom: 15px;
     }
 }
