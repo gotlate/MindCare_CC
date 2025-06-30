@@ -6,6 +6,9 @@ import joblib
 import os
 import json
 import random
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
+from research_scraper import update_research_papers # Import the function
 
 # Add the directory containing the models to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'models')))
@@ -261,4 +264,13 @@ def predict_professional():
     return jsonify({'prediction': prediction_result})
 
 if __name__ == '__main__':
+    # Initialize and start the scheduler
+    scheduler = BackgroundScheduler()
+    # Schedule update_research_papers to run monthly
+    scheduler.add_job(func=update_research_papers, trigger="interval", months=1)
+    scheduler.start()
+
+    # Shut down the scheduler when the app exits
+    atexit.register(lambda: scheduler.shutdown())
+    
     app.run(debug=True)
