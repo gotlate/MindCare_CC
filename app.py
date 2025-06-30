@@ -5,23 +5,15 @@ import numpy as np
 import joblib
 import os
 import json
-import pickle
 
 # Add the directory containing the models to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'models')))
 
-# Load the trained models and required data
-
-print(f"Current working directory: {os.getcwd()}")
-print(f"__file__ in app.py: {__file__}")
-print(f"os.path.dirname(__file__): {os.path.dirname(__file__)}")
-print(f"os.path.abspath(__file__): {os.path.abspath(__file__)}")
-print(f"os.path.dirname(os.path.abspath(__file__)): {os.path.dirname(os.path.abspath(__file__))}")
+# Construct absolute paths to the model files and load them globally
 base_dir = os.path.dirname(os.path.abspath(__file__))
 models_dir = os.path.join(base_dir, 'models')
 
 try:
-    # Construct absolute paths to the model files
     student_model_path = os.path.join(models_dir, 'best_model_students.pkl')
     professional_model_path = os.path.join(models_dir, 'best_model_professionals.pkl')
     student_cols_path = os.path.join(models_dir, 'student_columns.json')
@@ -71,50 +63,24 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    # Load the trained models and column lists
-    try:
-        # Construct absolute paths to the model files (redundant if loaded globally, but keeping for clarity in this route)
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        models_dir = os.path.join(base_dir, 'models')
-        student_model = joblib.load(os.path.join(models_dir, 'best_model_students.pkl'))
-        professional_model = joblib.load(os.path.join(models_dir, 'best_model_professionals.pkl'))
-        
-        with open(os.path.join(models_dir, 'student_columns.json'), 'r') as f:
-            student_columns = json.load(f)
-        with open(os.path.join(models_dir, 'professional_columns.json'), 'r') as f:
-            professional_columns = json.load(f)
-    except FileNotFoundError:
-        return jsonify({'error': 'Model or columns file not found. Please run train_models.py first.'}), 500
-
-    # Add this print statement to check received data
-    print('Data received in backend:', data)
-
+@app.route('/predict/student', methods=['POST'])
+def predict_student():
     data = request.get_json()
-    user_type = data['user_type']
-    user_data = data['user_data']
-
-    # Convert user data to DataFrame
-    user_df = pd.DataFrame([user_data])
-
-    if user_type == 'student':
-        # Preprocess student data
-        # Assuming you have a preprocess_student_data function
-        processed_data = preprocess_student_data(user_df, student_columns)
-        prediction = student_model.predict(processed_data)
-    elif user_type == 'professional':
-        # Preprocess professional data
-        # Assuming you have a preprocess_professional_data function
-        processed_data = preprocess_professional_data(user_df, professional_columns)
-        prediction = professional_model.predict(processed_data)
-    else:
-        return jsonify({'error': 'Invalid user type'}), 400
-
-    # Assuming your models predict a single value (0 or 1 for binary classification)
-    # Adjust this based on your model's output
+    print('Student data received in backend:', data)
+    user_df = pd.DataFrame([data])
+    processed_data = preprocess_student_data(user_df, students_cols)
+    prediction = best_model_students.predict(processed_data)
     prediction_result = int(prediction[0])
+    return jsonify({'prediction': prediction_result})
 
+@app.route('/predict/professional', methods=['POST'])
+def predict_professional():
+    data = request.get_json()
+    print('Professional data received in backend:', data)
+    user_df = pd.DataFrame([data])
+    processed_data = preprocess_professional_data(user_df, professionals_cols)
+    prediction = best_model_professionals.predict(processed_data)
+    prediction_result = int(prediction[0])
     return jsonify({'prediction': prediction_result})
 
 
