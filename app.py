@@ -59,8 +59,10 @@ def preprocess_student_data(df, required_columns):
         df = df.drop(columns=["Name"])
 
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
-        df[col] = df[col].map({"Yes": 1, "No": 0})
-    df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
+        if col in df.columns:
+            df[col] = df[col].map({"Yes": 1, "No": 0})
+    if "Gender" in df.columns:
+        df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
 
     ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
     for col in ["Academic Pressure", "Study Satisfaction", "Financial Stress"]:
@@ -72,7 +74,8 @@ def preprocess_student_data(df, required_columns):
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
-    df = pd.get_dummies(df, columns=["City", "Dietary Habits", "Sleep Duration", "Degree"])
+    categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree"] if col in df.columns]
+    df = pd.get_dummies(df, columns=categorical_to_encode)
 
     for col in required_columns:
         if col not in df.columns:
@@ -85,8 +88,10 @@ def preprocess_professional_data(df, required_columns):
         df = df.drop(columns=["Name"])
 
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
-        df[col] = df[col].map({"Yes": 1, "No": 0})
-    df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
+        if col in df.columns:
+            df[col] = df[col].map({"Yes": 1, "No": 0})
+    if "Gender" in df.columns:
+        df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
 
     ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
     for col in ["Work Pressure", "Job Satisfaction", "Financial Stress"]:
@@ -98,7 +103,8 @@ def preprocess_professional_data(df, required_columns):
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
-    df = pd.get_dummies(df, columns=["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"])
+    categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"] if col in df.columns]
+    df = pd.get_dummies(df, columns=categorical_to_encode)
 
     for col in required_columns:
         if col not in df.columns:
@@ -178,15 +184,23 @@ def predict_student():
 
     raw_contributions = {feature: float(value) for feature, value in zip(students_cols, shap_values_instance)}
     
+    # --- Corrected Feature Contribution Logic ---
     feature_contributions = {}
-    categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree"]
+    categorical_features_map = {
+        "City": "City", "Dietary Habits": "Dietary Habits", 
+        "Sleep Duration": "Sleep Duration", "Degree": "Degree"
+    }
+    
     for key, value in data.items():
-        if key in categorical_features:
+        if key in categorical_features_map:
+            # Construct the one-hot encoded key and get its value
             one_hot_key = f"{key}_{value}"
             if one_hot_key in raw_contributions:
                 feature_contributions[key] = raw_contributions[one_hot_key]
         elif key in raw_contributions:
+            # Handle numerical and simple binary features
             feature_contributions[key] = raw_contributions[key]
+    # --- End of Corrected Logic ---
     
     if risk_score <= 4:
         risk_category = "Low Risk"
@@ -219,15 +233,23 @@ def predict_professional():
         
     raw_contributions = {feature: float(value) for feature, value in zip(professionals_cols, shap_values_instance)}
     
+    # --- Corrected Feature Contribution Logic ---
     feature_contributions = {}
-    categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"]
+    categorical_features_map = {
+        "City": "City", "Dietary Habits": "Dietary Habits", 
+        "Sleep Duration": "Sleep Duration", "Degree": "Degree", "Profession": "Profession"
+    }
+
     for key, value in data.items():
-        if key in categorical_features:
+        if key in categorical_features_map:
+            # Construct the one-hot encoded key and get its value
             one_hot_key = f"{key}_{value}"
             if one_hot_key in raw_contributions:
                 feature_contributions[key] = raw_contributions[one_hot_key]
         elif key in raw_contributions:
+            # Handle numerical and simple binary features
             feature_contributions[key] = raw_contributions[key]
+    # --- End of Corrected Logic ---
 
     if risk_score <= 4:
         risk_category = "Low Risk"
