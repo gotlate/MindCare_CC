@@ -36,7 +36,8 @@ def scrape_semantic_scholar(query):
         params = {
             'query': query,
             'limit': 10,  # Number of results per page
-            'fields': 'title,abstract,url'
+            'fields': 'title,abstract,url,publicationDate',
+            'sort': 'publicationDate:desc' # Sort by publication date, newest first
         }
         response = requests.get(SEMANTIC_SCHOLAR_API_URL, params=params)
         response.raise_for_status()
