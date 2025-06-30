@@ -114,7 +114,7 @@ def predict_student():
     processed_data = preprocess_student_data(user_df, students_cols)
     # Use predict_proba to get the probability of the positive class (index 1)
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(risk_score[0]) # Return as float for more precision
+    prediction_result = float(round(risk_score[0],1)) # Return as float for more precision
     return jsonify({'prediction': prediction_result})
 
 @app.route('/predict/professional', methods=['POST'])
@@ -125,7 +125,7 @@ def predict_professional():
     processed_data = preprocess_professional_data(user_df, professionals_cols)
     # Use predict_proba to get the probability of the positive class (index 1)
     risk_score = best_model_professionals.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(risk_score[0]) # Return as float for more precision
+    prediction_result = float(round(risk_score[0],1)) # Return as float for more precision
     return jsonify({'prediction': prediction_result})
 
 
