@@ -14,6 +14,9 @@ document.getElementById('prediction-form').addEventListener('submit', function(e
         }
     });
 
+    // Add this console.log statement to print the jsonData object before sending
+    console.log('Data being sent:', jsonData);
+
     fetch('/predict', {
         method: 'POST',
         headers: {

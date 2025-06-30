@@ -88,6 +88,9 @@ def predict():
     except FileNotFoundError:
         return jsonify({'error': 'Model or columns file not found. Please run train_models.py first.'}), 500
 
+    # Add this print statement to check received data
+    print('Data received in backend:', data)
+
     data = request.get_json()
     user_type = data['user_type']
     user_data = data['user_data']
