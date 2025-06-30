@@ -6,7 +6,6 @@
     <title>MindCare - Assessment Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    <!-- Chart.js is no longer needed for this design -->
 </head>
 <body>
     <div class="main-container">
@@ -34,9 +33,10 @@
             <div class="breakdown-section">
                 <h3>Risk Factors Breakdown</h3>
                 <p class="chart-subtitle">This shows the factors with the biggest impact on your score.</p>
-                <!-- This is the new container for the animated list -->
                 <div class="factors-list-container">
-                    <ul id="factors-list"></ul>
+                    <ul id="factors-list">
+                        <!-- Animated bars will be generated here by JavaScript -->
+                    </ul>
                 </div>
             </div>
 
@@ -57,21 +57,27 @@
             const riskCategory = "{{ risk_category }}";
             const featureContributions = JSON.parse('{{ feature_contributions | safe }}');
             
-            // --- New Animated List Logic ---
+            // --- New Animated Contribution Bar Logic ---
             const factorsList = document.getElementById('factors-list');
 
             const sortedFeatures = Object.entries(featureContributions)
                 .filter(([key, value]) => Math.abs(value) > 0.001)
                 .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+            
+            const maxImpact = Math.max(...sortedFeatures.map(f => Math.abs(f[1])));
 
             sortedFeatures.forEach((feature, index) => {
                 const [name, value] = feature;
                 
                 const listItem = document.createElement('li');
-                
                 const isIncrease = value > 0;
-                listItem.className = isIncrease ? 'risk-increase' : 'risk-decrease';
                 
+                // The animated bar element
+                const bar = document.createElement('div');
+                bar.className = 'factor-bar';
+                bar.style.width = `${(Math.abs(value) / maxImpact) * 100}%`;
+                bar.classList.add(isIncrease ? 'risk-increase' : 'risk-decrease');
+
                 const factorName = document.createElement('span');
                 factorName.className = 'factor-name';
                 factorName.textContent = name.replace(/_/g, ' ');
@@ -80,15 +86,15 @@
                 factorValue.className = 'factor-value';
                 factorValue.textContent = (isIncrease ? '+' : '') + value.toFixed(2);
                 
+                listItem.appendChild(bar);
                 listItem.appendChild(factorName);
                 listItem.appendChild(factorValue);
                 
-                // Staggered animation effect
-                setTimeout(() => {
-                    factorsList.appendChild(listItem);
-                }, index * 150);
+                // Staggered animation for a cascade effect
+                listItem.style.animationDelay = `${index * 120}ms`;
+                factorsList.appendChild(listItem);
             });
-            // --- End of New Animated List Logic ---
+            // --- End of New Logic ---
 
             // (The rest of the gauge animation script remains the same)
             const resultCard = document.getElementById('result-card');

@@ -396,7 +396,7 @@ select:focus {
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     text-align: center;
-    border-top: 8px solid; /* Default border top */
+    border-top: 8px solid;
     transition: border-color 0.5s ease;
     opacity: 0;
     transform: translateY(20px);
@@ -493,7 +493,7 @@ select:focus {
     margin-right: auto;
 }
 
-/* --- New Animated Breakdown Styles --- */
+/* --- New Animated Contribution Bar Styles --- */
 .breakdown-section {
     margin-top: 40px;
     border-top: 1px solid #e0e0e0;
@@ -513,7 +513,7 @@ select:focus {
 }
 
 .factors-list-container {
-    max-width: 500px;
+    max-width: 550px;
     margin: 0 auto;
 }
 
@@ -521,26 +521,42 @@ select:focus {
     list-style-type: none;
     padding: 0;
     margin: 0;
+    text-align: left;
 }
 
 #factors-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 18px;
-    margin-bottom: 10px;
+    position: relative;
+    padding: 12px 15px;
+    margin-bottom: 12px;
     border-radius: 8px;
-    background-color: #f8f9fa;
-    border-left: 5px solid;
+    background-color: #f0f4f8;
+    overflow: hidden;
     opacity: 0;
-    transform: translateY(20px);
-    animation: slide-in 0.5s ease-out forwards;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: slide-in-fade-in 0.6s ease-out forwards;
 }
 
-#factors-list li:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+.factor-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 8px 0 0 8px;
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: grow-bar 0.8s 0.3s ease-out forwards;
+}
+
+.factor-bar.risk-increase {
+    background: linear-gradient(90deg, rgba(244, 67, 54, 0.4), rgba(244, 67, 54, 0));
+}
+
+.factor-bar.risk-decrease {
+    background: linear-gradient(90deg, rgba(76, 175, 80, 0.4), rgba(76, 175, 80, 0));
+}
+
+.factor-name, .factor-value {
+    position: relative;
+    z-index: 1;
 }
 
 .factor-name {
@@ -549,27 +565,27 @@ select:focus {
 }
 
 .factor-value {
+    float: right;
     font-weight: 700;
     font-size: 1.1em;
 }
 
-#factors-list li.risk-increase {
-    border-color: #F44336;
-}
-#factors-list li.risk-increase .factor-value {
-    color: #F44336;
+li.risk-increase .factor-value {
+    color: #c0392b;
 }
 
-#factors-list li.risk-decrease {
-    border-color: #4CAF50;
-}
-#factors-list li.risk-decrease .factor-value {
-    color: #4CAF50;
+li.risk-decrease .factor-value {
+    color: #27ae60;
 }
 
-@keyframes slide-in {
+@keyframes slide-in-fade-in {
     to {
         opacity: 1;
-        transform: translateY(0);
+    }
+}
+
+@keyframes grow-bar {
+    to {
+        transform: scaleX(1);
     }
 }
