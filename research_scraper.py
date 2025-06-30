@@ -1,7 +1,6 @@
 import json
 import os
 import requests
-from bs4 import BeautifulSoup
 import time
 
 # --- Configuration ---
@@ -9,9 +8,12 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 STUDENT_RESOURCES_PATH = os.path.join(DATA_DIR, 'student_resources.json')
 PROFESSIONAL_RESOURCES_PATH = os.path.join(DATA_DIR, 'professional_resources.json')
 
-# Search queries for Google Scholar
+# Search queries for Semantic Scholar
 STUDENT_RESEARCH_QUERY = "mental health college students"
 PROFESSIONAL_RESEARCH_QUERY = "workplace mental health burnout"
+
+# Semantic Scholar API Endpoint
+SEMANTIC_SCHOLAR_API_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
 
 # --- Helper Functions ---
 def load_resources(file_path):
@@ -28,42 +30,42 @@ def save_resources(file_path, resources):
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(resources, f, indent=4, ensure_ascii=False)
 
-def scrape_google_scholar(query):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    # Using a search query that sorts by date
-    url = f"https://scholar.google.com/scholar?q={query.replace(' ', '+')}&hl=en&as_sdt=0,5&scisbd=1"
-    
+def scrape_semantic_scholar(query):
+    results = []
     try:
-        response = requests.get(url, headers=headers)
+        params = {
+            'query': query,
+            'limit': 10,  # Number of results per page
+            'fields': 'title,abstract,url'
+        }
+        response = requests.get(SEMANTIC_SCHOLAR_API_URL, params=params)
         response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
+        data = response.json()
         
-        results = []
-        for result in soup.select('.gs_ri'):
-            title_tag = result.select_one('.gs_rt a')
-            description_tag = result.select_one('.gs_rs')
-            
-            if title_tag:
-                title = title_tag.get_text(strip=True)
-                link = title_tag['href']
-                description = description_tag.get_text(strip=True) if description_tag else "No abstract available."
-                
+        if 'data' in data:
+            for paper in data['data']:
+                title = paper.get('title', 'No Title')
+                description = paper.get('abstract', 'No Abstract Available')
+                url = paper.get('url', '#')
+
                 results.append({
                     "title": title,
                     "description": description,
-                    "url": link
+                    "url": url
                 })
-        return results
+        else:
+            print(f"No data found for query: {query}")
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching Google Scholar for query '{query}': {e}")
-        return []
+        print(f"Error fetching from Semantic Scholar for query '{query}': {e}")
+    except KeyError as e:
+        print(f"Error parsing Semantic Scholar response for query '{query}': Missing key {e}")
+    return results
+
 
 def update_research_papers():
     print("Updating student research papers...")
     student_resources = load_resources(STUDENT_RESOURCES_PATH)
-    student_research = scrape_google_scholar(STUDENT_RESEARCH_QUERY)
+    student_research = scrape_semantic_scholar(STUDENT_RESEARCH_QUERY)
     
     if student_research:
         # Add new papers, preventing duplicates
@@ -77,7 +79,7 @@ def update_research_papers():
 
     print("Updating professional research papers...")
     professional_resources = load_resources(PROFESSIONAL_RESOURCES_PATH)
-    professional_research = scrape_google_scholar(PROFESSIONAL_RESEARCH_QUERY)
+    professional_research = scrape_semantic_scholar(PROFESSIONAL_RESEARCH_QUERY)
     
     if professional_research:
         existing_urls = {paper['url'] for paper in professional_resources.get("Research & Studies", [])}
