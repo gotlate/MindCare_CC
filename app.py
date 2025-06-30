@@ -105,11 +105,36 @@ def preprocess_professional_data(df, required_columns):
             df[col] = 0 
     return df[required_columns].astype(float) 
 
+def clean_feature_contributions(raw_contributions, user_input, categorical_features):
+    cleaned_contributions = {}
+    
+    # Consolidate one-hot encoded features based on the user's actual selection
+    for cat_feature in categorical_features:
+        user_choice = user_input.get(cat_feature)
+        if user_choice:
+            # Construct the exact feature name as created by pd.get_dummies
+            one_hot_feature_name = f"{cat_feature}_{user_choice}"
+            if one_hot_feature_name in raw_contributions:
+                # Use the simple, readable name for the chart
+                cleaned_contributions[cat_feature] = raw_contributions[one_hot_feature_name]
+
+    # Copy over all other features that are not part of a one-hot encoded group
+    for feature, value in raw_contributions.items():
+        is_one_hot_part = False
+        for cat_feature in categorical_features:
+            if feature.startswith(f"{cat_feature}_"):
+                is_one_hot_part = True
+                break
+        if not is_one_hot_part:
+            cleaned_contributions[feature] = value
+            
+    return cleaned_contributions
+
 app = Flask(__name__)
 
 # --- Degree Mapping ---
 degree_map = {
-    "DOCTOR": ["MBBS", "MD", "MS"], "ENGINEER": ["B.Tech", "M.Tech", "BE", "ME"], "TEACHER": ["B.Ed", "M.Ed", "B.A", "M.A", "Any Bachelor's Degree", "Any Master's Degree", "PhD"], "LAWYER": ["LLB", "LLM"], "ARCHITECT": ["B.Arch", "M.Arch"], "ARTIST": ["BFA", "MFA"], "ACCOUNTANT": ["B.Com", "M.Com", "CA"], "SOFTWARE DEVELOPER": ["B.Tech", "M.Tech", "BCA", "MCA"], "NURSE": ["B.Sc Nursing", "M.Sc Nursing"], "JOURNALIST": ["BJMC", "MJMC"], "SCIENTIST": ["B.Sc", "M.Sc", "PhD"], "ENTREPRENEUR": ["BBA", "MBA"], "CONSULTANT": ["MBA", "B.Com", "B.Tech"], "MANAGER": ["BBA", "MBA", "M.Com"], "DESIGNER": ["B.Des", "M.Des", "BFA"], "RESEARCHER": ["M.Sc", "PhD"], "POLICE OFFICER": ["B.A", "B.Sc"], "ELECTRICIAN": ["Diploma in Electrical Engineering", "ITI Electrician"], "MECHANIC": ["Diploma in Mechanical Engineering", "ITI Mechanic"], "PLUMBER": ["ITI Plumber"], "CARPENTER": ["ITI Carpenter"], "CHEF": ["BHM", "Diploma in Culinary Arts"], "PILOT": ["B.Sc Aviation", "Commercial Pilot License"], "GRAPHIC DESIGNER": ["B.Des", "BFA", "Diploma in Graphic Design"], "CONTENT WRITER": ["B.A", "M.A", "BJMC"], "HR MANAGER": ["BBA", "MBA", "PGDM in HR"], "CUSTOMER SUPPORT": ["Any Bachelor's Degree"], "SALES EXECUTIVE": ["Any Bachelor's Degree"], "MARKETING MANAGER": ["BBA", "MBA", "BMS"], "FINANCIAL ADVISOR": ["B.Com", "MBA Finance", "CFA"], "BANKER": ["B.Com", "BBA", "MBA Finance"], "CIVIL SERVANT": ["Any Bachelor's Degree"], "PHARMACIST": ["B.Pharm", "M.Pharm"], "VETERINarian": ["BVSc & AH", "MVSc"], "PHOTOGRAPHER": ["BFA Photography", "Diploma in Photography"], "CHARTED ACCOUNTANT": ["CA"], "ACTOR": ["B.A Theatre", "Diploma in Acting"], "DANCER": ["B.A Dance", "Diploma in Dance"], "MUSICIAN": ["B.A Music", "Diploma in Music"], "SPORTSPERSON": ["B.P.Ed", "M.P.Ed"], "FASHION DESIGNER": ["B.Des Fashion", "NIFT Diploma"], "INTERIOR DESIGNER": ["B.Des Interior", "Diploma in Interior Design"], "SOCIAL WORKER": ["BSW", "MSW"], "COUNSELOR": ["B.A Psychology", "M.A Psychology"], "PHYSIOTHERAPIST": ["BPT", "MPT"], "OPTOMETRIST": ["B.Optom", "M.Optom"], "DENTIST": ["BDS", "MDS"], "AYURVEDIC DOCTOR": ["BAMS", "MD Ayurveda"], "HOMOEOPATHIC DOCTOR": ["BHMS", "MD Homoeopathy"], "PARAMEDIC": ["B.Sc Paramedical Technology", "Diploma in Paramedical Science"], "YOGA INSTRUCTOR": ["Diploma in Yoga", "B.A Yoga"], "LIBRARIAN": ["BLIS", "MLIS"], "STATISTICIAN": ["B.Sc Statistics", "M.Sc Statistics"], "ECONOMIST": ["B.A Economics", "M.A Economics"], "HISTORIAN": ["B.A History", "M.A History"], "ANTHROPOLOGIST": ["B.A Anthropology", "M.A Anthropology"], "SOCIOLOGIST": ["B.A Sociology", "M.A Sociology"], "GEOGRAPHER": ["B.Sc Geography", "M.Sc Geography"], "GEOLOGIST": ["B.Sc Geology", "M.Sc Geology"], "ENVIRONMENTAL SCIENTIST": ["B.Sc Environmental Science", "M.Sc Environmental Science"], "AGRICULTURIST": ["B.Sc Agriculture", "M.Sc Agriculture"], "FOOD SCIENTIST": ["B.Tech Food Technology", "M.Tech Food Technology"], "DAIRY TECHNOLOGIST": ["B.Tech Dairy Technology", "M.Tech Dairy Technology"], "SUGAR TECHNOLOGIST": ["B.Tech Sugar Technology", "M.Tech Sugar Technology"], "LEATHER TECHNOLOGIST": ["B.Tech Leather Technology", "M.Tech Leather Technology"]
+    "DOCTOR": ["MBBS", "MD", "MS"], "ENGINEER": ["B.Tech", "M.Tech", "BE", "ME"], "TEACHER": ["B.Ed", "M.Ed", "B.A", "M.A", "Any Bachelor's Degree", "Any Master's Degree", "PhD"], "LAWYER": ["LLB", "LLM"], "ARCHITECT": ["B.Arch", "M.Arch"], "ARTIST": ["BFA", "MFA"], "ACCOUNTANT": ["B.Com", "M.Com", "CA"], "SOFTWARE DEVELOPER": ["B.Tech", "M.Tech", "BCA", "MCA"], "NURSE": ["B.Sc Nursing", "M.Sc Nursing"], "JOURNALIST": ["BJMC", "MJMC"], "SCIENTIST": ["B.Sc", "M.Sc", "PhD"], "ENTREPRENEUR": ["BBA", "MBA"], "CONSULTANT": ["MBA", "B.Com", "B.Tech"], "MANAGER": ["BBA", "MBA", "M.Com"], "DESIGNER": ["B.Des", "M.Des", "BFA"], "RESEARCHER": ["M.Sc", "PhD"], "POLICE OFFICER": ["B.A", "B.Sc"], "ELECTRICIAN": ["Diploma in Electrical Engineering", "ITI Electrician"], "MECHANIC": ["Diploma in Mechanical Engineering", "ITI Mechanic"], "PLUMBER": ["ITI Plumber"], "CARPENTER": ["ITI Carpenter"], "CHEF": ["BHM", "Diploma in Culinary Arts"], "PILOT": ["B.Sc Aviation", "Commercial Pilot License"], "GRAPHIC DESIGNER": ["B.Des", "BFA", "Diploma in Graphic Design"], "CONTENT WRITER": ["B.A", "M.A", "BJMC"], "HR MANAGER": ["BBA", "MBA", "PGDM in HR"], "CUSTOMER SUPPORT": ["Any Bachelor's Degree"], "SALES EXECUTIVE": ["Any Bachelor's Degree"], "MARKETING MANAGER": ["BBA", "MBA", "BMS"], "FINANCIAL ADVISOR": ["B.Com", "MBA Finance", "CFA"], "BANKER": ["B.Com", "BBA", "MBA Finance"], "CIVIL SERVANT": ["Any Bachelor's Degree"], "PHARMACIST": ["B.Pharm", "M.Pharm"], "VETERINARIAN": ["BVSc & AH", "MVSc"], "PHOTOGRAPHER": ["BFA Photography", "Diploma in Photography"], "CHARTED ACCOUNTANT": ["CA"], "ACTOR": ["B.A Theatre", "Diploma in Acting"], "DANCER": ["B.A Dance", "Diploma in Dance"], "MUSICIAN": ["B.A Music", "Diploma in Music"], "SPORTSPERSON": ["B.P.Ed", "M.P.Ed"], "FASHION DESIGNER": ["B.Des Fashion", "NIFT Diploma"], "INTERIOR DESIGNER": ["B.Des Interior", "Diploma in Interior Design"], "SOCIAL WORKER": ["BSW", "MSW"], "COUNSELOR": ["B.A Psychology", "M.A Psychology"], "PHYSIOTHERAPIST": ["BPT", "MPT"], "OPTOMETRIST": ["B.Optom", "M.Optom"], "DENTIST": ["BDS", "MDS"], "AYURVEDIC DOCTOR": ["BAMS", "MD Ayurveda"], "HOMOEOPATHIC DOCTOR": ["BHMS", "MD Homoeopathy"], "PARAMEDIC": ["B.Sc Paramedical Technology", "Diploma in Paramedical Science"], "YOGA INSTRUCTOR": ["Diploma in Yoga", "B.A Yoga"], "LIBRARIAN": ["BLIS", "MLIS"], "STATISTICIAN": ["B.Sc Statistics", "M.Sc Statistics"], "ECONOMIST": ["B.A Economics", "M.A Economics"], "HISTORIAN": ["B.A History", "M.A History"], "ANTHROPOLOGIST": ["B.A Anthropology", "M.A Anthropology"], "SOCIOLOGIST": ["B.A Sociology", "M.A Sociology"], "GEOGRAPHER": ["B.Sc Geography", "M.Sc Geography"], "GEOLOGIST": ["B.Sc Geology", "M.Sc Geology"], "ENVIRONMENTAL SCIENTIST": ["B.Sc Environmental Science", "M.Sc Environmental Science"], "AGRICULTURIST": ["B.Sc Agriculture", "M.Sc Agriculture"], "FOOD SCIENTIST": ["B.Tech Food Technology", "M.Tech Food Technology"], "DAIRY TECHNOLOGIST": ["B.Tech Dairy Technology", "M.Tech Dairy Technology"], "SUGAR TECHNOLOGIST": ["B.Tech Sugar Technology", "M.Tech Sugar Technology"], "LEATHER TECHNOLOGIST": ["B.Tech Leather Technology", "M.Tech Leather Technology"]
 }
 
 # --- Resource Loading Functions ---
@@ -163,8 +188,8 @@ def get_degrees():
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
     data = request.get_json()
-    user_df = pd.DataFrame([data])
-    processed_data = preprocess_student_data(user_df, students_cols)
+    user_df = pd.DataFrame([data], index=[0])
+    processed_data = preprocess_student_data(user_df.copy(), students_cols)
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
     risk_score = round(float(risk_score[0]), 2)
 
@@ -175,7 +200,10 @@ def predict_student():
     else:
         shap_values_instance = shap_values[0]
 
-    feature_contributions = {feature: round(float(value), 3) for feature, value in zip(students_cols, shap_values_instance)}
+    raw_contributions = {feature: float(value) for feature, value in zip(students_cols, shap_values_instance)}
+    
+    student_categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree"]
+    feature_contributions = clean_feature_contributions(raw_contributions, data, student_categorical_features)
     
     if risk_score <= 4:
         risk_category = "Low Risk"
@@ -194,8 +222,8 @@ def predict_student():
 @app.route('/predict/professional', methods=['POST'])
 def predict_professional():
     data = request.get_json()
-    user_df = pd.DataFrame([data])
-    processed_data = preprocess_professional_data(user_df, professionals_cols)
+    user_df = pd.DataFrame([data], index=[0])
+    processed_data = preprocess_professional_data(user_df.copy(), professionals_cols)
     risk_score = best_model_professionals.predict_proba(processed_data)[:, 1] * 10
     risk_score = round(float(risk_score[0]), 2)
 
@@ -206,7 +234,10 @@ def predict_professional():
     else:
         shap_values_instance = shap_values[0]
         
-    feature_contributions = {feature: round(float(value), 3) for feature, value in zip(professionals_cols, shap_values_instance)}
+    raw_contributions = {feature: float(value) for feature, value in zip(professionals_cols, shap_values_instance)}
+    
+    professional_categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"]
+    feature_contributions = clean_feature_contributions(raw_contributions, data, professional_categorical_features)
 
     if risk_score <= 4:
         risk_category = "Low Risk"
