@@ -1,4 +1,4 @@
-document.getElementById('predictionForm').addEventListener('submit', function(event) {
+document.getElementById('prediction-form').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission
 
     const form = event.target;
@@ -21,7 +21,7 @@ document.getElementById('predictionForm').addEventListener('submit', function(ev
     .then(response => response.json())
     .then(data => {
         // Display the prediction result (you'll need to add an element to your HTML for this)
-        document.getElementById('predictionResult').innerText = 'Prediction Result: ' + data.prediction;
+        document.getElementById('prediction-result').innerText = 'Prediction Result: ' + data.prediction;
     })
     .catch(error => {
         console.error('Error:', error);
