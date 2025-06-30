@@ -34,75 +34,75 @@ except FileNotFoundError:
     print("Error: Model or columns file not found. Please run train_models.py first.")
     sys.exit(1)
 
-# Define preprocessing functions (assuming they are the same as in your original application.py)
+# --- Load unique categorical values from the dataset (New) ---
+try:
+    df_full = pd.read_csv("final_depression_dataset_1.csv")
+    unique_cities = sorted(df_full['City'].dropna().unique().tolist())
+    # Get unique degrees for students only from the dataset
+    unique_student_degrees = sorted(df_full[df_full['Working Professional or Student'] == 'Student']['Degree'].dropna().unique().tolist())
+    unique_professions = sorted(df_full[df_full['Working Professional or Student'] == 'Working Professional']['Profession'].dropna().unique().tolist())
+    # Get all unique degrees from the entire dataset for filtering professional degrees later
+    all_unique_degrees_from_dataset = sorted(df_full['Degree'].dropna().unique().tolist())
+except FileNotFoundError:
+    print("Error: final_depression_dataset_1.csv not found. Please ensure the dataset file is in the project directory.")
+    sys.exit(1)
+
+# Define preprocessing functions
 def preprocess_student_data(df, required_columns):
-    df = df.copy() # Work on a copy to avoid SettingWithCopyWarning
+    df = df.copy() 
     df = df.drop(columns=["Name"])
 
-    # Map binary columns
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
         df[col] = df[col].map({"Yes": 1, "No": 0})
     df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
 
-    # Map ordinal categorical columns
     ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
     df["Academic Pressure"] = df["Academic Pressure"].map(ordinal_mapping)
     df["Study Satisfaction"] = df["Study Satisfaction"].map(ordinal_mapping)
     df["Financial Stress"] = df["Financial Stress"].map(ordinal_mapping)
 
-    # Convert numerical columns to numeric type
     numerical_cols = ['Age', 'CGPA', 'Work/Study Hours']
     for col in numerical_cols:
-        # Ensure column exists before attempting conversion
         if col in df.columns:
-            # Convert to numeric, coercing errors (non-numeric values become NaN)
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            # Fill NaN if any, perhaps with mean or median, or 0 if it's acceptable
-            df[col] = df[col].fillna(0) # For simplicity, fill with 0
+            df[col] = df[col].fillna(0) 
 
-    # One-hot encode non-binary and non-ordinal columns
     df = pd.get_dummies(df, columns=["City", "Dietary Habits", "Sleep Duration", "Degree"])
 
-    # Ensure all required columns are present and in the correct order
     for col in required_columns:
         if col not in df.columns:
-            df[col] = 0 # Add missing columns with a default value (e.g., 0)
-    return df[required_columns].astype(float) # Ensure all columns are float before passing to model
+            df[col] = 0 
+    return df[required_columns].astype(float) 
 
 def preprocess_professional_data(df, required_columns):
-    df = df.copy() # Work on a copy
+    df = df.copy() 
     df = df.drop(columns=["Name"])
 
-    # Map binary columns
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
         df[col] = df[col].map({"Yes": 1, "No": 0})
     df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
 
-    # Map ordinal categorical columns
     ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
     df["Work Pressure"] = df["Work Pressure"].map(ordinal_mapping)
     df["Job Satisfaction"] = df["Job Satisfaction"].map(ordinal_mapping)
     df["Financial Stress"] = df["Financial Stress"].map(ordinal_mapping)
 
-    # Convert numerical columns to numeric type
     numerical_cols = ['Age', 'Work/Study Hours']
     for col in numerical_cols:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            df[col] = df[col].fillna(0) # For simplicity, fill with 0
+            df[col] = df[col].fillna(0) 
 
-    # One-hot encode non-binary and non-ordinal columns
     df = pd.get_dummies(df, columns=["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"])
 
-    # Ensure all required columns are present and in the correct order
     for col in required_columns:
         if col not in df.columns:
-            df[col] = 0 # Add missing columns with a default value (e.g., 0)
-    return df[required_columns].astype(float) # Ensure all columns are float before passing to model
+            df[col] = 0 
+    return df[required_columns].astype(float) 
 
 app = Flask(__name__)
 
-# --- Degree Mapping (New) ---
+# --- Degree Mapping ---
 degree_map = {
     "DOCTOR": ["MBBS", "MD", "MS"],
     "ENGINEER": ["B.Tech", "M.Tech", "BE", "ME"],
@@ -165,7 +165,7 @@ degree_map = {
     "GEOLOGIST": ["B.Sc Geology", "M.Sc Geology"],
     "ENVIRONMENTAL SCIENTIST": ["B.Sc Environmental Science", "M.Sc Environmental Science"],
     "AGRICULTURIST": ["B.Sc Agriculture", "M.Sc Agriculture"],
-    "FOOD SCIENTIST": ["B.Sc Food Technology", "M.Sc Food Technology"],
+    "FOOD SCIENTIST": ["B.Tech Food Technology", "M.Tech Food Technology"],
     "NUTRITIONIST": ["B.Sc Nutrition", "M.Sc Nutrition"],
     "DIETITIAN": ["B.Sc Dietetics", "M.Sc Dietetics"],
     "SPORTS SCIENTIST": ["B.Sc Sports Science", "M.Sc Sports Science"],
@@ -223,12 +223,18 @@ degree_map = {
 @app.route('/get_degrees', methods=['GET'])
 def get_degrees():
     profession = request.args.get('profession', '').upper()
-    degrees = degree_map.get(profession, ["Other / Not Applicable", "Any Bachelor's Degree", "Any Master's Degree", "PhD"])
-    return jsonify({'degrees': degrees})
+    # Filter degrees from the map to only include those present in the dataset
+    possible_degrees = degree_map.get(profession, ["Other / Not Applicable", "Any Bachelor's Degree", "Any Master's Degree", "PhD"])
+    # Ensure returned degrees are actually in the dataset's unique degrees
+    filtered_degrees = [d for d in possible_degrees if d in all_unique_degrees_from_dataset]
+    if not filtered_degrees:
+        # Fallback if no specific degree matches dataset degrees for the profession
+        filtered_degrees = ["Other / Not Applicable"]
+    return jsonify({'degrees': filtered_degrees})
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', unique_cities=unique_cities, unique_student_degrees=unique_student_degrees, unique_professions=unique_professions)
 
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
