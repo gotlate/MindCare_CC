@@ -177,7 +177,7 @@ degree_map = {
 def load_resources(resource_type):
     file_path = os.path.join(data_dir, f'{resource_type}_resources.json')
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         print(f"Error: Could not load or decode JSON from {file_path}.")
