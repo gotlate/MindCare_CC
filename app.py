@@ -1,5 +1,5 @@
 import sys
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import pandas as pd
 import numpy as np
 import joblib
@@ -247,22 +247,55 @@ def get_degrees():
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
     data = request.get_json()
-    print('Student data received in backend:', data)
     user_df = pd.DataFrame([data])
     processed_data = preprocess_student_data(user_df, students_cols)
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(risk_score[0])
-    return jsonify({'prediction': prediction_result})
+    risk_score = round(float(risk_score[0]), 2)
+
+    if risk_score <= 4:
+        risk_category = "Low Risk"
+        message = "Your risk score is low. Keep up the good work on maintaining your mental well-being. It's still important to be mindful of your stress levels and practice self-care."
+    elif risk_score <= 7:
+        risk_category = "Medium Risk"
+        message = "Your risk score is in the medium range. This suggests you may be experiencing some symptoms of stress or other mental health concerns. It would be beneficial to explore resources and consider talking to a professional."
+    else:
+        risk_category = "High Risk"
+        message = "Your risk score is high, which indicates a high probability of mental health distress. It is strongly recommended that you seek professional help. There are resources available to support you."
+
+    return jsonify({
+        'redirect_url': url_for('result', risk_score=risk_score, risk_category=risk_category, message=message)
+    })
 
 @app.route('/predict/professional', methods=['POST'])
 def predict_professional():
     data = request.get_json()
-    print('Professional data received in backend:', data)
     user_df = pd.DataFrame([data])
     processed_data = preprocess_professional_data(user_df, professionals_cols)
     risk_score = best_model_professionals.predict_proba(processed_data)[:, 1] * 10
-    prediction_result = float(risk_score[0])
-    return jsonify({'prediction': prediction_result})
+    risk_score = round(float(risk_score[0]), 2)
+
+    if risk_score <= 4:
+        risk_category = "Low Risk"
+        message = "Your risk score is low. Keep up the good work on maintaining your mental well-being. It's still important to be mindful of your stress levels and practice self-care."
+    elif risk_score <= 7:
+        risk_category = "Medium Risk"
+        message = "Your risk score is in the medium range. This suggests you may be experiencing some symptoms of stress or other mental health concerns. It would be beneficial to explore resources and consider talking to a professional."
+    else:
+        risk_category = "High Risk"
+        message = "Your risk score is high, which indicates a high probability of mental health distress. It is strongly recommended that you seek professional help. There are resources available to support you."
+
+    return jsonify({
+        'redirect_url': url_for('result', risk_score=risk_score, risk_category=risk_category, message=message)
+    })
+
+
+@app.route('/result')
+def result():
+    risk_score = request.args.get('risk_score', 0, type=float)
+    risk_category = request.args.get('risk_category', 'Low Risk')
+    message = request.args.get('message', 'No message provided.')
+    return render_template('result.html', risk_score=risk_score, risk_category=risk_category, message=message)
+
 
 if __name__ == '__main__':
     # Initialize and start the scheduler

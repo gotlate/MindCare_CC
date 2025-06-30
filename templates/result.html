@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindCare - Assessment Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <h2 class="section-title">Assessment Result</h2>
+        <div class="result-container">
+            <div class="gauge-container">
+                <div class="gauge">
+                    <div class="gauge-body">
+                        <div class="gauge-fill"></div>
+                        <div class="gauge-cover">
+                            <div class="risk-score">{{ risk_score }}</div>
+                            <div class="risk-category">{{ risk_category }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="result-message">
+                <p>{{ message }}</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        const riskScore = {{ risk_score }};
+        const gaugeFill = document.querySelector('.gauge-fill');
+        const gaugeCover = document.querySelector('.gauge-cover');
+        const rotation = (riskScore / 10) * 180;
+        gaugeFill.style.transform = `rotate(${rotation}deg)`;
+        if (riskScore <= 4) {
+            gaugeFill.style.backgroundColor = '#4CAF50';
+        } else if (riskScore <= 7) {
+            gaugeFill.style.backgroundColor = '#FFC107';
+        } else {
+            gaugeFill.style.backgroundColor = '#F44336';
+        }
+    </script>
+</body>
+</html>
