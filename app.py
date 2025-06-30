@@ -12,6 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'models'
 # Construct absolute paths to the model files and load them globally
 base_dir = os.path.dirname(os.path.abspath(__file__))
 models_dir = os.path.join(base_dir, 'models')
+data_dir = os.path.join(base_dir, 'data')
 
 try:
     student_model_path = os.path.join(models_dir, 'best_model_students.pkl')
@@ -166,63 +167,36 @@ degree_map = {
     "ENVIRONMENTAL SCIENTIST": ["B.Sc Environmental Science", "M.Sc Environmental Science"],
     "AGRICULTURIST": ["B.Sc Agriculture", "M.Sc Agriculture"],
     "FOOD SCIENTIST": ["B.Tech Food Technology", "M.Tech Food Technology"],
-    "NUTRITIONIST": ["B.Sc Nutrition", "M.Sc Nutrition"],
-    "DIETITIAN": ["B.Sc Dietetics", "M.Sc Dietetics"],
-    "SPORTS SCIENTIST": ["B.Sc Sports Science", "M.Sc Sports Science"],
-    "FORENSIC SCIENTIST": ["B.Sc Forensic Science", "M.Sc Forensic Science"],
-    "ARCHAEOLOGIST": ["B.A Archaeology", "M.A Archaeology"],
-    "CURATOR": ["M.A Museology"],
-    "CONSERVATIONIST": ["M.Sc Conservation"],
-    "URBAN PLANNER": ["B.Plan", "M.Plan"],
-    "LANDSCAPE ARCHITECT": ["B.L.Arch", "M.L.Arch"],
-    "TOUR GUIDE": ["Diploma in Tourism", "B.A Tourism"],
-    "HOTEL MANAGER": ["BHM", "Diploma in Hotel Management"],
-    "EVENT MANAGER": ["BBA Event Management", "Diploma in Event Management"],
-    "PUBLIC RELATIONS OFFICER": ["Bachelors in Mass Communication", "PG Diploma in PR"],
-    "ADVERTISING PROFESSIONAL": ["Bachelors in Advertising", "PG Diploma in Advertising"],
-    "FILMMAKER": ["B.A Film Studies", "Diploma in Filmmaking"],
-    "PHOTOGRAPHER": ["BFA Photography", "Diploma in Photography"],
-    "EDITOR": ["B.A English", "Diploma in Editing"],
-    "TRANSLATOR": ["B.A Linguistics", "Diploma in Translation"],
-    "TECHNICAL WRITER": ["B.Tech", "B.Sc", "B.A English"],
-    "WEB DEVELOPER": ["B.Tech CS", "BCA", "MCA", "Diploma in Web Development"],
-    "DATA SCIENTIST": ["B.Tech CS", "M.Sc Data Science", "B.Sc Statistics"],
-    "CYBERSECURITY ANALYST": ["B.Tech CS", "M.Tech Cybersecurity", "B.Sc IT"],
-    "CLOUD ENGINEER": ["B.Tech CS", "M.Tech Cloud Computing"],
-    "NETWORK ENGINEER": ["B.Tech ECE", "CCNA", "CCNP"],
-    "ROBOTICS ENGINEER": ["B.Tech Robotics", "M.Tech Robotics"],
-    "AEROSPACE ENGINEER": ["B.Tech Aerospace", "M.Tech Aerospace"],
-    "MARINE ENGINEER": ["B.Tech Marine", "ME Marine"],
-    "BIOTECHNOLOGIST": ["B.Tech Biotechnology", "M.Tech Biotechnology"],
-    "GENETICIST": ["B.Sc Genetics", "M.Sc Genetics", "PhD Genetics"],
-    "MICROBIOLOGIST": ["B.Sc Microbiology", "M.Sc Microbiology"],
-    "BIOCHEMIST": ["B.Sc Biochemistry", "M.Sc Biochemistry"],
-    "ZOOLOGIST": ["B.Sc Zoology", "M.Sc Zoology"],
-    "BOTANIST": ["B.Sc Botany", "M.Sc Botany"],
-    "ECOLOGIST": ["B.Sc Ecology", "M.Sc Ecology"],
-    "METEOROLOGIST": ["B.Sc Meteorology", "M.Sc Meteorology"],
-    "OCEANOGRAPHER": ["B.Sc Oceanography", "M.Sc Oceanography"],
-    "ASTRONOMER": ["B.Sc Astronomy", "M.Sc Astronomy", "PhD Astronomy"],
-    "PHYSICIST": ["B.Sc Physics", "M.Sc Physics", "PhD Physics"],
-    "CHEMIST": ["B.Sc Chemistry", "M.Sc Chemistry", "PhD Chemistry"],
-    "MATHEMATICIAN": ["B.Sc Mathematics", "M.Sc Mathematics", "PhD Mathematics"],
-    "GEOPHYSICIST": ["B.Sc Geophysics", "M.Sc Geophysics"],
-    "CARTOGRAPHER": ["B.Sc Cartography", "M.Sc Cartography"],
-    "GEOMATICS ENGINEER": ["B.Tech Geomatics", "M.Tech Geomatics"],
-    "MINING ENGINEER": ["B.Tech Mining", "M.Tech Mining"],
-    "PETROLEUM ENGINEER": ["B.Tech Petroleum", "M.Tech Petroleum"],
-    "CERAMIC ENGINEER": ["B.Tech Ceramic", "M.Tech Ceramic"],
-    "TEXTILE ENGINEER": ["B.Tech Textile", "M.Tech Textile"],
-    "PLASTIC ENGINEER": ["B.Tech Plastic", "M.Tech Plastic"],
-    "FOOD TECHNOLOGIST": ["B.Tech Food Technology", "M.Tech Food Technology"],
     "DAIRY TECHNOLOGIST": ["B.Tech Dairy Technology", "M.Tech Dairy Technology"],
     "SUGAR TECHNOLOGIST": ["B.Tech Sugar Technology", "M.Tech Sugar Technology"],
     "LEATHER TECHNOLOGIST": ["B.Tech Leather Technology", "M.Tech Leather Technology"]
 }
 
+# --- Resource Loading Functions ---
+def load_resources(resource_type):
+    file_path = os.path.join(data_dir, f'{resource_type}_resources.json')
+    try:
+        with open(file_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Error: {file_path} not found.")
+        return {}
+    except json.JSONDecodeError:
+        print(f"Error: Could not decode JSON from {file_path}.")
+        return {}
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/student_dashboard')
+def student_dashboard():
+    return render_template('student_dashboard.html')
+
+@app.route('/professional_dashboard')
+def professional_dashboard():
+    return render_template('professional_dashboard.html')
 
 @app.route('/student_form')
 def student_form_page():
@@ -231,6 +205,16 @@ def student_form_page():
 @app.route('/professional_form')
 def professional_form_page():
     return render_template('professional_form.html', unique_cities=unique_cities, unique_professions=unique_professions)
+
+@app.route('/student_resources')
+def student_resources_page():
+    resources = load_resources('student')
+    return render_template('student_resources.html', resources=resources)
+
+@app.route('/professional_resources')
+def professional_resources_page():
+    resources = load_resources('professional')
+    return render_template('professional_resources.html', resources=resources)
 
 @app.route('/get_degrees', methods=['GET'])
 def get_degrees():

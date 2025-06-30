@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindCare - Professional Resources</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="resources-container">
+        <h2 class="section-title">Working Professional Mental Health Resources</h2>
+
+        {% if resources %}
+            {% for category, items in resources.items() %}
+                <div class="resource-category">
+                    <h3>{{ category }}</h3>
+                    {% if items %}
+                        {% for item in items %}
+                            <div class="resource-item">
+                                <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+                                <p>{{ item.description }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No resources found in this category.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No professional resources available at the moment. Please check back later!</p>
+        {% endif %}
+
+        <div class="button-group" style="margin-top: 30px; text-align: center;">
+            <a href="/professional_dashboard" class="button secondary">Back to Dashboard</a>
+            <a href="/" class="button secondary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

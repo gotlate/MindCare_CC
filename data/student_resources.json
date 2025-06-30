@@ -1,0 +1,38 @@
+{
+    "Latest Articles": [
+        {
+            "title": "Coping with Exam Stress: A Student's Guide",
+            "description": "Strategies for managing academic pressure and maintaining mental well-being during exam periods.",
+            "url": "https://example.com/student-exam-stress"
+        },
+        {
+            "title": "Balancing Social Life and Studies: Tips for College Students",
+            "description": "Advice on how to find a healthy balance between academic responsibilities and social engagements.",
+            "url": "https://example.com/student-balance"
+        }
+    ],
+    "Research & Studies": [
+        {
+            "title": "Impact of Sleep Deprivation on Student Mental Health",
+            "description": "A recent study exploring the correlation between sleep patterns and mental well-being in university students.",
+            "url": "https://example.com/student-sleep-research"
+        },
+        {
+            "title": "Digital Well-being for Students in the Modern Age",
+            "description": "Research on the effects of screen time and social media on young adults' mental health and strategies for digital detox.",
+            "url": "https://example.com/student-digital-wellbeing"
+        }
+    ],
+    "Suggestions for Improving Mental Health": [
+        {
+            "title": "Mindfulness Exercises for Students",
+            "description": "Simple mindfulness techniques to reduce anxiety and improve focus.",
+            "url": "https://example.com/student-mindfulness"
+        },
+        {
+            "title": "Building a Support System: Why It Matters for Students",
+            "description": "Guidance on connecting with peers, mentors, and mental health professionals on campus.",
+            "url": "https://example.com/student-support-system"
+        }
+    ]
+}

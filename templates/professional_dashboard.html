@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindCare - Professional Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <h2 class="section-title">Working Professional Dashboard</h2>
+        <div class="selection-container">
+            <a href="/professional_form" class="selection-card">
+                <h2>Predict Risk of Depression</h2>
+                <p>Fill out a form to get an assessment of depression risk.</p>
+            </a>
+            <a href="/professional_resources" class="selection-card">
+                <h2>Resources</h2>
+                <p>Find articles, research, and suggestions for mental well-being.</p>
+            </a>
+        </div>
+        <div class="button-group" style="margin-top: 30px;">
+            <a href="/" class="button secondary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

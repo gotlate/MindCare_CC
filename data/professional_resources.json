@@ -1,0 +1,38 @@
+{
+    "Latest Articles": [
+        {
+            "title": "Managing Work-Life Balance for Professionals",
+            "description": "Effective strategies to prevent burnout and maintain well-being in a demanding career.",
+            "url": "https://example.com/prof-work-life-balance"
+        },
+        {
+            "title": "Stress Reduction Techniques for the Workplace",
+            "description": "Practical tips for professionals to reduce daily stress and improve productivity.",
+            "url": "https://example.com/prof-stress-reduction"
+        }
+    ],
+    "Research & Studies": [
+        {
+            "title": "The Impact of Remote Work on Professional Mental Health",
+            "description": "A study analyzing the psychological effects of remote work environments on employees.",
+            "url": "https://example.com/prof-remote-work-research"
+        },
+        {
+            "title": "Leadership and Employee Well-being: A Correlational Study",
+            "description": "Research on how leadership styles influence the mental health and job satisfaction of professionals.",
+            "url": "https://example.com/prof-leadership-wellbeing"
+        }
+    ],
+    "Suggestions for Improving Mental Health": [
+        {
+            "title": "Building Resilience in Your Professional Life",
+            "description": "Develop coping mechanisms to navigate challenges and setbacks in your career.",
+            "url": "https://example.com/prof-resilience"
+        },
+        {
+            "title": "The Importance of Digital Detox for Working Professionals",
+            "description": "Understanding the benefits of disconnecting from digital devices for mental clarity and relaxation.",
+            "url": "https://example.com/prof-digital-detox"
+        }
+    ]
+}
