@@ -141,12 +141,12 @@ imputer_pro = SimpleImputer(strategy='median')
 X_train_pro = imputer_pro.fit_transform(X_train_pro)
 X_test_pro = imputer_pro.transform(X_test_pro)
 
-# Calculate scale_pos_weight on the ORIGINAL training data before resampling
+# Calculate scale_pos_weight for professional model due to class imbalance
 pro_class_counts = pd.Series(y_train_pro).value_counts()
 if 0 in pro_class_counts and 1 in pro_class_counts and pro_class_counts[1] > 0:
     scale_pos_weight_pro = pro_class_counts[0] / pro_class_counts[1]
 else:
-    scale_pos_weight_pro = 1 
+    scale_pos_weight_pro = 1
 print(f"Calculated scale_pos_weight for professional model: {scale_pos_weight_pro:.2f}")
 
 # Apply SMOTE to the training data
@@ -161,6 +161,14 @@ xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_we
 grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
 best_model_professionals = grid_search_pro.best_estimator_
+
+# Ensure all expected columns are present in the preprocessed data
+for col in all_cols:
+    if col not in X_test_pro.columns:
+        X_test_pro[col] = 0  # Add missing columns with 0 value
+X_test_pro = X_test_pro[all_cols] #order the columns as the training data
+
+
 y_pred_pro = best_model_professionals.predict(X_test_pro)
 y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
 
