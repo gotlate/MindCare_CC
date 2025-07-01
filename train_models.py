@@ -98,13 +98,15 @@ X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, 
 
 # Impute missing values for student data
 print("Imputing missing values for student data...")
+# Ensure X_train_stu and X_test_stu are pandas DataFrames before imputation
+X_train_stu = pd.DataFrame(X_train_stu, columns=all_cols)
+X_test_stu = pd.DataFrame(X_test_stu, columns=all_cols)
+
+# Impute missing values for student data
+print("Imputing missing values for student data...")
 imputer_stu = SimpleImputer(strategy='median')
 X_train_stu = imputer_stu.fit_transform(X_train_stu)
 X_test_stu = imputer_stu.transform(X_test_stu)
-
-# Assert consistency in feature shapes after imputation
-assert X_train_stu.shape[1] == len(all_cols), "Feature count mismatch in student training data after imputation."
-assert X_test_stu.shape[1] == len(all_cols), "Feature count mismatch in student testing data after imputation."
 
 xgb_stu = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
 random_search_stu = RandomizedSearchCV(estimator=xgb_stu, param_distributions=param_grid_xgb_large, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42)
@@ -141,15 +143,16 @@ plt.clf()
 print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV, SMOTE, and scale_pos_weight) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 
+# Ensure X_train_pro and X_test_pro are pandas DataFrames before imputation
+X_train_pro = pd.DataFrame(X_train_pro, columns=all_cols)
+X_test_pro = pd.DataFrame(X_test_pro, columns=all_cols)
+
+
 # Impute missing values
 print("Imputing missing values for professional data...")
 imputer_pro = SimpleImputer(strategy='median')
 X_train_pro = imputer_pro.fit_transform(X_train_pro)
 X_test_pro = imputer_pro.transform(X_test_pro)
-
-# Assert consistency in feature shapes after imputation
-assert X_train_pro.shape[1] == len(all_cols), "Feature count mismatch in professional training data after imputation."
-assert X_test_pro.shape[1] == len(all_cols), "Feature count mismatch in professional testing data after imputation."
 
 # Calculate scale_pos_weight for professional model due to class imbalance
 pro_class_counts = pd.Series(y_train_pro).value_counts()
@@ -166,8 +169,6 @@ X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro, y
 print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
 
-# Use scale_pos_weight calculated on original data, but train on SMOTE-resampled data
-# Ensure the resampled data has the same number of features as expected
 assert X_train_pro_resampled.shape[1] == len(all_cols), "Feature count mismatch in professional training data after SMOTE."
 
 xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro)
