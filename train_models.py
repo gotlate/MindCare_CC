@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split, RandomizedSearchCV # Changed to RandomizedSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_curve, auc
 import xgboost as xgb
@@ -8,6 +8,7 @@ import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+from imblearn.over_sampling import SMOTE
 
 # --- Data Loading and Preprocessing ---
 print("Loading and preprocessing data...")
@@ -69,21 +70,20 @@ X_professionals = X_professionals.reindex(columns=all_cols, fill_value=0)
 
 # --- Model Training and Evaluation ---
 
-# Define XGBoost parameter grid
+# Define XGBoost parameter grid (Original, smaller grid)
 param_grid_xgb = {
-    'n_estimators': [100, 300, 500],
-    'max_depth': [3, 5, 7, 9],
-    'learning_rate': [0.01, 0.05, 0.1, 0.2],
-    'subsample': [0.6, 0.8, 1.0],
-    'colsample_bytree': [0.6, 0.8, 1.0],
-    'gamma': [0, 0.1, 0.2]
+    'n_estimators': [100, 200],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.05, 0.1],
+    'subsample': [0.7, 1.0],
+    'colsample_bytree': [0.7, 1.0]
 }
 
 # --- Student Model ---
 print("--- Training and Evaluating Student Model (XGBoost) ---")
 X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
 xgb_stu = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
-grid_search_stu = RandomizedSearchCV(estimator=xgb_stu, param_distributions=param_grid_xgb, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42) # Changed to RandomizedSearchCV with n_iter
+grid_search_stu = GridSearchCV(estimator=xgb_stu, param_grid=param_grid_xgb, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1) # Reverted to cv=3
 grid_search_stu.fit(X_train_stu, y_train_stu)
 best_model_students = grid_search_stu.best_estimator_
 y_pred_stu = best_model_students.predict(X_test_stu)
@@ -117,6 +117,13 @@ plt.clf()
 print("--- Training and Evaluating Professional Model (XGBoost) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 
+# Apply SMOTE to the training data
+print("Applying SMOTE to professional training data...")
+smote = SMOTE(random_state=42)
+X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro, y_train_pro)
+print(f"Original training set shape: {y_train_pro.shape[0]}")
+print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
+
 # Calculate scale_pos_weight for professional model due to class imbalance
 pro_class_counts = pd.Series(y_train_pro).value_counts()
 # Ensure class 0 is majority and class 1 is minority
@@ -125,9 +132,9 @@ if 0 in pro_class_counts and 1 in pro_class_counts:
 else:
     scale_pos_weight_pro = 1 # Default to 1 if one class is missing or only one class exists
 
-xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro) # Added scale_pos_weight
-grid_search_pro = RandomizedSearchCV(estimator=xgb_pro, param_distributions=param_grid_xgb, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42) # Changed to RandomizedSearchCV with n_iter
-grid_search_pro.fit(X_train_pro, y_train_pro)
+xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro) # scale_pos_weight maintained
+grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1) # Reverted to GridSearchCV and cv=3
+grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled) # Train on resampled data
 best_model_professionals = grid_search_pro.best_estimator_
 y_pred_pro = best_model_professionals.predict(X_test_pro)
 y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
