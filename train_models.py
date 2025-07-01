@@ -154,6 +154,10 @@ imputer_pro = SimpleImputer(strategy='median')
 X_train_pro = imputer_pro.fit_transform(X_train_pro)
 X_test_pro = imputer_pro.transform(X_test_pro)
 
+# Ensure X_train_pro is a DataFrame with correct columns before SMOTE
+X_train_pro = pd.DataFrame(X_train_pro, columns=all_cols)
+
+
 # Calculate scale_pos_weight for professional model due to class imbalance
 pro_class_counts = pd.Series(y_train_pro).value_counts()
 if 0 in pro_class_counts and 1 in pro_class_counts and pro_class_counts[1] > 0:
