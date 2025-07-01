@@ -153,15 +153,11 @@ print(f"Length of all_cols: {len(all_cols)}")
 print(f"Columns of X_train_pro before imputation: {X_train_pro.columns.tolist()}")
 
 
-# Impute missing values
+# Impute missing values for professional data
 print("Imputing missing values for professional data...")
 imputer_pro = SimpleImputer(strategy='median')
-X_train_pro = imputer_pro.fit_transform(X_train_pro)
-X_test_pro = imputer_pro.transform(X_test_pro)
-
-# Ensure X_train_pro is a DataFrame with correct columns before SMOTE
-X_train_pro = pd.DataFrame(X_train_pro, columns=all_cols)
-
+X_train_pro_imputed = imputer_pro.fit_transform(X_train_pro)
+X_test_pro_imputed = imputer_pro.transform(X_test_pro)
 
 # Calculate scale_pos_weight for professional model due to class imbalance
 print(f"Shape of y_train_pro before value_counts: {y_train_pro.shape}")
@@ -175,7 +171,7 @@ print(f"Calculated scale_pos_weight for professional model: {scale_pos_weight_pr
 # Apply SMOTE to the training data
 print("Applying SMOTE to professional training data...")
 smote = SMOTE(random_state=42)
-X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro, y_train_pro)
+X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro_imputed, y_train_pro)
 print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
 
@@ -187,7 +183,7 @@ grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
 best_model_professionals = grid_search_pro.best_estimator_
 
 
-
+X_test_pro = pd.DataFrame(X_test_pro_imputed, columns=all_cols)
 y_pred_pro = best_model_professionals.predict(X_test_pro)
 y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
 
