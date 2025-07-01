@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_curve, auc
 import xgboost as xgb
@@ -71,8 +71,17 @@ X_professionals = X_professionals.reindex(columns=all_cols, fill_value=0)
 
 # --- Model Training and Evaluation ---
 
-# Define XGBoost parameter grid (Original, smaller grid for faster search)
-param_grid_xgb = {
+# Define XGBoost parameter grid (Original, smaller grid)
+param_grid_xgb_small = {
+    'n_estimators': [100, 200],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.05, 0.1],
+    'subsample': [0.7, 1.0],
+    'colsample_bytree': [0.7, 1.0]
+}
+
+# Define a larger grid for RandomizedSearch for the student model
+param_grid_xgb_large = {
     'n_estimators': [100, 200, 300, 500],
     'max_depth': [3, 5, 7, 9],
     'learning_rate': [0.01, 0.05, 0.1],
@@ -82,7 +91,7 @@ param_grid_xgb = {
 }
 
 # --- Student Model ---
-print("--- Training and Evaluating Student Model (XGBoost) ---")
+print("--- Training and Evaluating Student Model (XGBoost with RandomizedSearchCV) ---")
 X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
 
 # Impute missing values for student data
@@ -92,7 +101,7 @@ X_train_stu = imputer_stu.fit_transform(X_train_stu)
 X_test_stu = imputer_stu.transform(X_test_stu)
 
 xgb_stu = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
-random_search_stu = RandomizedSearchCV(estimator=xgb_stu, param_distributions=param_grid_xgb, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42)
+random_search_stu = RandomizedSearchCV(estimator=xgb_stu, param_distributions=param_grid_xgb_large, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42)
 random_search_stu.fit(X_train_stu, y_train_stu)
 best_model_students = random_search_stu.best_estimator_
 y_pred_stu = best_model_students.predict(X_test_stu)
@@ -123,7 +132,7 @@ print("Student model ROC curve saved to student_model_roc_curve.png")
 plt.clf()
 
 # --- Professional Model ---
-print("--- Training and Evaluating Professional Model (XGBoost) ---")
+print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 
 # Impute missing values
@@ -147,14 +156,14 @@ else:
     scale_pos_weight_pro = 1 
 
 xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro)
-random_search_pro = RandomizedSearchCV(estimator=xgb_pro, param_distributions=param_grid_xgb, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42)
-random_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
-best_model_professionals = random_search_pro.best_estimator_
+grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
+grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
+best_model_professionals = grid_search_pro.best_estimator_
 y_pred_pro = best_model_professionals.predict(X_test_pro)
 y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
 
 print("Best Professional Model Parameters:")
-print(random_search_pro.best_params_)
+print(grid_search_pro.best_params_)
 print("Professional Model Performance Metrics:")
 print(f"Accuracy: {accuracy_score(y_test_pro, y_pred_pro):.4f}")
 fpr_pro, tpr_pro, _ = roc_curve(y_test_pro, y_pred_proba_pro)
@@ -182,14 +191,15 @@ models_dir = 'models'
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 
-joblib.dump(best_model_students, os.path.join(models_dir, 'best_model_students.pkl'))
-joblib.dump(best_model_professionals, os.path.join(models_dir, 'best_model_professionals.pkl'))
-print(f"Models saved successfully in '{models_dir}' directory.")
-
 # Get original column names before imputation
 student_cols_original = X_students.columns.tolist()
 professional_cols_original = X_professionals.columns.tolist()
 all_cols_original = sorted(list(set(student_cols_original + professional_cols_original)))
+
+
+joblib.dump(best_model_students, os.path.join(models_dir, 'best_model_students.pkl'))
+joblib.dump(best_model_professionals, os.path.join(models_dir, 'best_model_professionals.pkl'))
+print(f"Models saved successfully in '{models_dir}' directory.")
 
 with open(os.path.join(models_dir, 'student_columns.json'), 'w') as f:
     json.dump(all_cols_original, f)
