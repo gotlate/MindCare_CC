@@ -185,7 +185,7 @@ print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
 
 # Convert the resampled array back to a DataFrame with correct column names
 # Use the columns from X_train_pro_imputed, which were already aligned with all_cols
-X_train_pro_resampled = pd.DataFrame(X_train_pro_resampled, columns=pd.DataFrame(X_train_pro_imputed, columns=all_cols).columns)
+X_train_pro_resampled = pd.DataFrame(X_train_pro_resampled).reindex(columns=all_cols, fill_value=0)
 
 # Assert that the number of features matches the expected columns
 assert X_train_pro_resampled.shape[1] == len(all_cols), "Feature count mismatch in professional training data after SMOTE."
