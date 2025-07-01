@@ -105,8 +105,14 @@ X_test_stu = pd.DataFrame(X_test_stu, columns=all_cols)
 # Impute missing values for student data
 print("Imputing missing values for student data...")
 imputer_stu = SimpleImputer(strategy='median')
-X_train_stu = imputer_stu.fit_transform(X_train_stu)
-X_test_stu = imputer_stu.transform(X_test_stu)
+
+# Ensure X_train_stu and X_test_stu are pandas DataFrames with correct columns before imputation
+X_train_stu = pd.DataFrame(X_train_stu, columns=all_cols)
+X_test_stu = pd.DataFrame(X_test_stu, columns=all_cols)
+
+# Apply imputer and convert back to DataFrame to maintain column integrity
+X_train_stu = pd.DataFrame(imputer_stu.fit_transform(X_train_stu), columns=all_cols)
+X_test_stu = pd.DataFrame(imputer_stu.transform(X_test_stu), columns=all_cols)
 
 xgb_stu = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
 random_search_stu = RandomizedSearchCV(estimator=xgb_stu, param_distributions=param_grid_xgb_large, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42)
@@ -143,10 +149,6 @@ plt.clf()
 print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV, SMOTE, and scale_pos_weight) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 
-# Ensure X_train_pro and X_test_pro are pandas DataFrames with correct columns before imputation
-X_train_pro = pd.DataFrame(X_train_pro, columns=all_cols)
-X_test_pro = pd.DataFrame(X_test_pro, columns=all_cols)
-
 # Add print statements to check shapes and column counts before imputation
 print(f"Shape of X_train_pro before imputation: {X_train_pro.shape}")
 print(f"Length of all_cols: {len(all_cols)}")
@@ -154,10 +156,14 @@ print(f"Columns of X_train_pro before imputation: {X_train_pro.columns.tolist()}
 
 
 # Impute missing values for professional data
+# Ensure X_train_pro and X_test_pro are pandas DataFrames with correct columns before imputation
+X_train_pro = pd.DataFrame(X_train_pro, columns=all_cols)
+X_test_pro = pd.DataFrame(X_test_pro, columns=all_cols)
+
 print("Imputing missing values for professional data...")
 imputer_pro = SimpleImputer(strategy='median')
-X_train_pro_imputed = imputer_pro.fit_transform(X_train_pro)
-X_test_pro_imputed = imputer_pro.transform(X_test_pro)
+X_train_pro_imputed = pd.DataFrame(imputer_pro.fit_transform(X_train_pro), columns=all_cols)
+X_test_pro_imputed = pd.DataFrame(imputer_pro.transform(X_test_pro), columns=all_cols)
 
 # Calculate scale_pos_weight for professional model due to class imbalance
 print(f"Shape of y_train_pro before value_counts: {y_train_pro.shape}")
@@ -183,10 +189,6 @@ X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro_im
 print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
 
-# Convert the resampled array back to a DataFrame with correct column names
-# Use the columns from X_train_pro_imputed, which were already aligned with all_cols
-X_train_pro_resampled = pd.DataFrame(X_train_pro_resampled).reindex(columns=all_cols, fill_value=0)
-
 # Assert that the number of features matches the expected columns
 assert X_train_pro_resampled.shape[1] == len(all_cols), "Feature count mismatch in professional training data after SMOTE."
 
@@ -194,7 +196,6 @@ xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_we
 grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
 best_model_professionals = grid_search_pro.best_estimator_
-
 
 X_test_pro = pd.DataFrame(X_test_pro_imputed, columns=all_cols)
 y_pred_pro = best_model_professionals.predict(X_test_pro)
