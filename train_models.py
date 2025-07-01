@@ -183,6 +183,10 @@ X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro_im
 print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
 
+# Convert the resampled array back to a DataFrame with correct column names
+X_train_pro_resampled = pd.DataFrame(X_train_pro_resampled, columns=all_cols)
+
+# Assert that the number of features matches the expected columns
 assert X_train_pro_resampled.shape[1] == len(all_cols), "Feature count mismatch in professional training data after SMOTE."
 
 xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro)
