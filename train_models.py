@@ -71,16 +71,7 @@ X_professionals = X_professionals.reindex(columns=all_cols, fill_value=0)
 
 # --- Model Training and Evaluation ---
 
-# Define XGBoost parameter grid (Original, smaller grid)
-param_grid_xgb_small = {
-    'n_estimators': [100, 200],
-    'max_depth': [3, 5, 7],
-    'learning_rate': [0.05, 0.1],
-    'subsample': [0.7, 1.0],
-    'colsample_bytree': [0.7, 1.0]
-}
-
-# Define a larger grid for RandomizedSearch for the student model
+# Define a larger parameter grid for RandomizedSearch
 param_grid_xgb_large = {
     'n_estimators': [100, 200, 300, 500],
     'max_depth': [3, 5, 7, 9],
@@ -88,6 +79,15 @@ param_grid_xgb_large = {
     'subsample': [0.7, 0.8, 0.9, 1.0],
     'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
     'gamma': [0, 0.1, 0.2]
+}
+
+# Define the original, smaller parameter grid for GridSearchCV
+param_grid_xgb_small = {
+    'n_estimators': [100, 200],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.05, 0.1],
+    'subsample': [0.7, 1.0],
+    'colsample_bytree': [0.7, 1.0]
 }
 
 # --- Student Model ---
@@ -132,7 +132,7 @@ print("Student model ROC curve saved to student_model_roc_curve.png")
 plt.clf()
 
 # --- Professional Model ---
-print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV) ---")
+print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV and SMOTE) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 
 # Impute missing values
@@ -148,14 +148,8 @@ X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro, y
 print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
 
-# Calculate scale_pos_weight for professional model due to class imbalance
-pro_class_counts = pd.Series(y_train_pro_resampled).value_counts()
-if 0 in pro_class_counts and 1 in pro_class_counts:
-    scale_pos_weight_pro = pro_class_counts[0] / pro_class_counts[1]
-else:
-    scale_pos_weight_pro = 1 
-
-xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro)
+# We now rely solely on SMOTE for balancing. scale_pos_weight is removed.
+xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
 grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
 best_model_professionals = grid_search_pro.best_estimator_
