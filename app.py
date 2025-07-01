@@ -5,11 +5,6 @@ import numpy as np
 import joblib
 import os
 import json
-import random
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
-import atexit
-from research_scraper import update_research_papers
 import shap
 
 # Add the directory containing the models to the Python path
@@ -297,8 +292,4 @@ def result():
     return render_template('result.html', risk_score=risk_score, risk_category=risk_category, message=message, user_type=user_type, feature_contributions=feature_contributions)
 
 if __name__ == '__main__':
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=update_research_papers, trigger=CronTrigger(day=1, hour=0, minute=0))
-    scheduler.start()
-    atexit.register(lambda: scheduler.shutdown())
     app.run(debug=True)
