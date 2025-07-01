@@ -62,8 +62,8 @@ y_professionals = label_encoder.fit_transform(professionals_df["Depression"])
 
 # Ensure column order is consistent after preprocessing and before splitting
 # Align columns after one-hot encoding to ensure consistency
-student_cols = X_students.columns.tolist()
-professional_cols = X_professionals.columns.tolist()
+student_cols = list(X_students.columns)
+professional_cols = list(X_professionals.columns)
 
 
 all_cols = sorted(list(set(student_cols + professional_cols)))
@@ -143,9 +143,14 @@ plt.clf()
 print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV, SMOTE, and scale_pos_weight) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 
-# Ensure X_train_pro and X_test_pro are pandas DataFrames before imputation
+# Ensure X_train_pro and X_test_pro are pandas DataFrames with correct columns before imputation
 X_train_pro = pd.DataFrame(X_train_pro, columns=all_cols)
 X_test_pro = pd.DataFrame(X_test_pro, columns=all_cols)
+
+# Add print statements to check shapes and column counts before imputation
+print(f"Shape of X_train_pro before imputation: {X_train_pro.shape}")
+print(f"Length of all_cols: {len(all_cols)}")
+print(f"Columns of X_train_pro before imputation: {X_train_pro.columns.tolist()}")
 
 
 # Impute missing values
@@ -159,6 +164,7 @@ X_train_pro = pd.DataFrame(X_train_pro, columns=all_cols)
 
 
 # Calculate scale_pos_weight for professional model due to class imbalance
+print(f"Shape of y_train_pro before value_counts: {y_train_pro.shape}")
 pro_class_counts = pd.Series(y_train_pro).value_counts()
 if 0 in pro_class_counts and 1 in pro_class_counts and pro_class_counts[1] > 0:
     scale_pos_weight_pro = pro_class_counts[0] / pro_class_counts[1]
