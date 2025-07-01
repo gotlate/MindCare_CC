@@ -132,7 +132,7 @@ print("Student model ROC curve saved to student_model_roc_curve.png")
 plt.clf()
 
 # --- Professional Model ---
-print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV and SMOTE) ---")
+print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV, SMOTE, and scale_pos_weight) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 
 # Impute missing values
@@ -141,6 +141,14 @@ imputer_pro = SimpleImputer(strategy='median')
 X_train_pro = imputer_pro.fit_transform(X_train_pro)
 X_test_pro = imputer_pro.transform(X_test_pro)
 
+# Calculate scale_pos_weight on the ORIGINAL training data before resampling
+pro_class_counts = pd.Series(y_train_pro).value_counts()
+if 0 in pro_class_counts and 1 in pro_class_counts and pro_class_counts[1] > 0:
+    scale_pos_weight_pro = pro_class_counts[0] / pro_class_counts[1]
+else:
+    scale_pos_weight_pro = 1 
+print(f"Calculated scale_pos_weight for professional model: {scale_pos_weight_pro:.2f}")
+
 # Apply SMOTE to the training data
 print("Applying SMOTE to professional training data...")
 smote = SMOTE(random_state=42)
@@ -148,8 +156,8 @@ X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro, y
 print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
 
-# We now rely solely on SMOTE for balancing. scale_pos_weight is removed.
-xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
+# Use scale_pos_weight calculated on original data, but train on SMOTE-resampled data
+xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro)
 grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
 best_model_professionals = grid_search_pro.best_estimator_
