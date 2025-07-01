@@ -9,6 +9,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from imblearn.over_sampling import SMOTE
+from sklearn.impute import SimpleImputer
 
 # --- Data Loading and Preprocessing ---
 print("Loading and preprocessing data...")
@@ -116,6 +117,12 @@ plt.clf()
 # --- Professional Model ---
 print("--- Training and Evaluating Professional Model (XGBoost) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
+
+# Impute missing values
+print("Imputing missing values for professional data...")
+imputer = SimpleImputer(strategy='median')
+X_train_pro = imputer.fit_transform(X_train_pro)
+X_test_pro = imputer.transform(X_test_pro)
 
 # Apply SMOTE to the training data
 print("Applying SMOTE to professional training data...")
