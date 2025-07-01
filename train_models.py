@@ -171,6 +171,14 @@ print(f"Calculated scale_pos_weight for professional model: {scale_pos_weight_pr
 # Apply SMOTE to the training data
 print("Applying SMOTE to professional training data...")
 smote = SMOTE(random_state=42)
+
+# Add print statements to check data types and missing values before SMOTE
+print(f"Data type of X_train_pro_imputed before SMOTE: {X_train_pro_imputed.dtype}")
+print(f"Number of missing values in X_train_pro_imputed before SMOTE: {np.isnan(X_train_pro_imputed).sum()}")
+print(f"Data type of y_train_pro before SMOTE: {y_train_pro.dtype}")
+
+# Explicitly convert X_train_pro_imputed to float type NumPy array
+X_train_pro_imputed = X_train_pro_imputed.astype(float)
 X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro_imputed, y_train_pro)
 print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
