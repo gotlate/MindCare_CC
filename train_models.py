@@ -182,10 +182,10 @@ X_train_pro_imputed = X_train_pro_imputed.astype(float)
 X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro_imputed, y_train_pro)
 print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
-
-# Convert the resampled array back to a DataFrame with correct column names
-# Use the columns from X_train_pro_imputed, which were already aligned with all_cols
-X_train_pro_resampled = pd.DataFrame(X_train_pro_resampled).reindex(columns=all_cols, fill_value=0)
+# Convert the resampled array back to a DataFrame
+X_train_pro_resampled = pd.DataFrame(X_train_pro_resampled)
+# Reindex the resampled DataFrame to match all_cols, filling missing columns with 0
+X_train_pro_resampled = X_train_pro_resampled.reindex(columns=all_cols, fill_value=0)
 
 # Assert that the number of features matches the expected columns
 assert X_train_pro_resampled.shape[1] == len(all_cols), "Feature count mismatch in professional training data after SMOTE."
@@ -194,7 +194,9 @@ xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_we
 grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
 best_model_professionals = grid_search_pro.best_estimator_
-
+# After imputing X_test_pro, create a pandas DataFrame from the X_test_pro_imputed NumPy array. Then, reindex this DataFrame using all_cols and fill any missing columns with 0. This will ensure the test data has the correct column structure for prediction.
+# Create a DataFrame from the imputed test data
+X_test_pro = pd.DataFrame(X_test_pro_imputed)
 
 X_test_pro = pd.DataFrame(X_test_pro_imputed, columns=all_cols)
 y_pred_pro = best_model_professionals.predict(X_test_pro)
