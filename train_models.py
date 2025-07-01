@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, RandomizedSearchCV # Changed to RandomizedSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_curve, auc
 import xgboost as xgb
@@ -83,7 +83,7 @@ param_grid_xgb = {
 print("--- Training and Evaluating Student Model (XGBoost) ---")
 X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
 xgb_stu = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
-grid_search_stu = GridSearchCV(estimator=xgb_stu, param_grid=param_grid_xgb, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1)
+grid_search_stu = RandomizedSearchCV(estimator=xgb_stu, param_distributions=param_grid_xgb, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42) # Changed to RandomizedSearchCV with n_iter
 grid_search_stu.fit(X_train_stu, y_train_stu)
 best_model_students = grid_search_stu.best_estimator_
 y_pred_stu = best_model_students.predict(X_test_stu)
@@ -117,7 +117,7 @@ plt.clf()
 print("--- Training and Evaluating Professional Model (XGBoost) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
-grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1)
+grid_search_pro = RandomizedSearchCV(estimator=xgb_pro, param_distributions=param_grid_xgb, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42) # Changed to RandomizedSearchCV with n_iter
 grid_search_pro.fit(X_train_pro, y_train_pro)
 best_model_professionals = grid_search_pro.best_estimator_
 y_pred_pro = best_model_professionals.predict(X_test_pro)
