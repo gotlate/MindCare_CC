@@ -60,9 +60,11 @@ y_students = label_encoder.fit_transform(students_df["Depression"])
 X_professionals = professionals_df.drop(columns=["Depression", "Working Professional or Student", "Name"])
 y_professionals = label_encoder.fit_transform(professionals_df["Depression"])
 
+# Ensure column order is consistent after preprocessing and before splitting
 # Align columns after one-hot encoding to ensure consistency
 student_cols = X_students.columns.tolist()
 professional_cols = X_professionals.columns.tolist()
+
 
 all_cols = sorted(list(set(student_cols + professional_cols)))
 
@@ -99,6 +101,10 @@ print("Imputing missing values for student data...")
 imputer_stu = SimpleImputer(strategy='median')
 X_train_stu = imputer_stu.fit_transform(X_train_stu)
 X_test_stu = imputer_stu.transform(X_test_stu)
+
+# Assert consistency in feature shapes after imputation
+assert X_train_stu.shape[1] == len(all_cols), "Feature count mismatch in student training data after imputation."
+assert X_test_stu.shape[1] == len(all_cols), "Feature count mismatch in student testing data after imputation."
 
 xgb_stu = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
 random_search_stu = RandomizedSearchCV(estimator=xgb_stu, param_distributions=param_grid_xgb_large, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42)
@@ -141,6 +147,10 @@ imputer_pro = SimpleImputer(strategy='median')
 X_train_pro = imputer_pro.fit_transform(X_train_pro)
 X_test_pro = imputer_pro.transform(X_test_pro)
 
+# Assert consistency in feature shapes after imputation
+assert X_train_pro.shape[1] == len(all_cols), "Feature count mismatch in professional training data after imputation."
+assert X_test_pro.shape[1] == len(all_cols), "Feature count mismatch in professional testing data after imputation."
+
 # Calculate scale_pos_weight for professional model due to class imbalance
 pro_class_counts = pd.Series(y_train_pro).value_counts()
 if 0 in pro_class_counts and 1 in pro_class_counts and pro_class_counts[1] > 0:
@@ -157,16 +167,14 @@ print(f"Original training set shape: {y_train_pro.shape[0]}")
 print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
 
 # Use scale_pos_weight calculated on original data, but train on SMOTE-resampled data
+# Ensure the resampled data has the same number of features as expected
+assert X_train_pro_resampled.shape[1] == len(all_cols), "Feature count mismatch in professional training data after SMOTE."
+
 xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro)
 grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
 best_model_professionals = grid_search_pro.best_estimator_
 
-# Ensure all expected columns are present in the preprocessed data
-for col in all_cols:
-    if col not in X_test_pro.columns:
-        X_test_pro[col] = 0  # Add missing columns with 0 value
-X_test_pro = X_test_pro[all_cols] #order the columns as the training data
 
 
 y_pred_pro = best_model_professionals.predict(X_test_pro)
@@ -201,18 +209,13 @@ models_dir = 'models'
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 
-# Get original column names before imputation
-student_cols_original = X_students.columns.tolist()
-professional_cols_original = X_professionals.columns.tolist()
-all_cols_original = sorted(list(set(student_cols_original + professional_cols_original)))
-
-
 joblib.dump(best_model_students, os.path.join(models_dir, 'best_model_students.pkl'))
 joblib.dump(best_model_professionals, os.path.join(models_dir, 'best_model_professionals.pkl'))
 print(f"Models saved successfully in '{models_dir}' directory.")
 
+# Save the unified list of columns used for training
 with open(os.path.join(models_dir, 'student_columns.json'), 'w') as f:
-    json.dump(all_cols_original, f)
+    json.dump(all_cols, f)
 with open(os.path.join(models_dir, 'professional_columns.json'), 'w') as f:
-    json.dump(all_cols_original, f)
+    json.dump(all_cols, f)
 print(f"Column lists saved successfully in '{models_dir}' directory.")

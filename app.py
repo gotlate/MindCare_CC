@@ -76,6 +76,9 @@ def preprocess_student_data(df, required_columns):
     for col in required_columns:
         if col not in df.columns:
             df[col] = 0 
+    # Ensure the order of columns matches the required columns
+    if not df.columns.equals(pd.Index(required_columns)):
+        df = df[required_columns]
     return df[required_columns].astype(float) 
 
 def preprocess_professional_data(df, required_columns):
@@ -105,6 +108,9 @@ def preprocess_professional_data(df, required_columns):
     for col in required_columns:
         if col not in df.columns:
             df[col] = 0 
+    # Ensure the order of columns matches the required columns
+    if not df.columns.equals(pd.Index(required_columns)):
+        df = df[required_columns]
     return df[required_columns].astype(float) 
 
 
@@ -223,8 +229,16 @@ def get_degrees():
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
     data = request.get_json()
-    user_df = pd.DataFrame([data], index=[0])
-    processed_data = preprocess_student_data(user_df.copy(), students_cols)
+    try:
+        user_df = pd.DataFrame([data], index=[0])
+        processed_data = preprocess_student_data(user_df.copy(), students_cols)
+        if processed_data.empty or processed_data.shape[1] != len(students_cols):
+            return jsonify({'error': 'Error processing input data: Feature shape mismatch.'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Error during data preprocessing: {str(e)}'}), 400
+
+
+
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
     risk_score = round(float(risk_score[0]), 2)
 
@@ -263,8 +277,15 @@ def predict_student():
 @app.route('/predict/professional', methods=['POST'])
 def predict_professional():
     data = request.get_json()
-    user_df = pd.DataFrame([data], index=[0])
-    processed_data = preprocess_professional_data(user_df.copy(), professionals_cols)
+    try:
+        user_df = pd.DataFrame([data], index=[0])
+        processed_data = preprocess_professional_data(user_df.copy(), professionals_cols)
+        if processed_data.empty or processed_data.shape[1] != len(professionals_cols):
+             return jsonify({'error': 'Error processing input data: Feature shape mismatch.'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Error during data preprocessing: {str(e)}'}), 400
+
+
     risk_score = best_model_professionals.predict_proba(processed_data)[:, 1] * 10
     risk_score = round(float(risk_score[0]), 2)
 
