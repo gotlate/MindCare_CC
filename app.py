@@ -201,6 +201,9 @@ def get_suggestions(user_type):
     import random
     random.shuffle(suggestions)
     
+    # Limit to 10 suggestions
+    suggestions = suggestions[:10]
+    
     return jsonify(suggestions)
 
 @app.route('/get_degrees', methods=['GET'])
