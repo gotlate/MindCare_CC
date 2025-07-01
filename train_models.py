@@ -116,7 +116,16 @@ plt.clf()
 # --- Professional Model ---
 print("--- Training and Evaluating Professional Model (XGBoost) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
-xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
+
+# Calculate scale_pos_weight for professional model due to class imbalance
+pro_class_counts = pd.Series(y_train_pro).value_counts()
+# Ensure class 0 is majority and class 1 is minority
+if 0 in pro_class_counts and 1 in pro_class_counts:
+    scale_pos_weight_pro = pro_class_counts[0] / pro_class_counts[1]
+else:
+    scale_pos_weight_pro = 1 # Default to 1 if one class is missing or only one class exists
+
+xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro) # Added scale_pos_weight
 grid_search_pro = RandomizedSearchCV(estimator=xgb_pro, param_distributions=param_grid_xgb, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42) # Changed to RandomizedSearchCV with n_iter
 grid_search_pro.fit(X_train_pro, y_train_pro)
 best_model_professionals = grid_search_pro.best_estimator_
