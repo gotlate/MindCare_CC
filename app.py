@@ -188,6 +188,21 @@ def professional_resources_page():
     resources = load_resources('professional')
     return render_template('professional_resources.html', resources=resources)
 
+@app.route('/get_suggestions/<user_type>', methods=['GET'])
+def get_suggestions(user_type):
+    # Ensure user_type is valid to prevent path traversal or unexpected file access
+    if user_type not in ['student', 'professional']:
+        return jsonify({'error': 'Invalid user type'}), 400
+    
+    resources = load_resources(user_type)
+    suggestions = resources.get("Suggestions", [])
+    
+    # Shuffle suggestions randomly
+    import random
+    random.shuffle(suggestions)
+    
+    return jsonify(suggestions)
+
 @app.route('/get_degrees', methods=['GET'])
 def get_degrees():
     # This now performs a direct, case-sensitive lookup

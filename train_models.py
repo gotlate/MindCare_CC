@@ -81,7 +81,7 @@ param_grid_xgb = {
 # --- Student Model ---
 print("--- Training and Evaluating Student Model (XGBoost) ---")
 X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
-xgb_stu = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
+xgb_stu = xgb.XGBClassifier(eval_metric='logloss', random_state=42) # Removed use_label_encoder
 grid_search_stu = GridSearchCV(estimator=xgb_stu, param_grid=param_grid_xgb, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_stu.fit(X_train_stu, y_train_stu)
 best_model_students = grid_search_stu.best_estimator_
@@ -115,7 +115,7 @@ plt.clf()
 # --- Professional Model ---
 print("--- Training and Evaluating Professional Model (XGBoost) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
-xgb_pro = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
+xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42) # Removed use_label_encoder
 grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro, y_train_pro)
 best_model_professionals = grid_search_pro.best_estimator_
