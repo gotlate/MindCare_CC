@@ -32,7 +32,7 @@
 
             <div class="breakdown-section">
                 <h3>Risk Factors Breakdown</h3>
-                <p class="chart-subtitle">This shows the factors with the biggest impact on your score.</p>
+                <p class="chart-subtitle">This shows the percentage contribution of each factor to your score.</p>
                 <div class="factors-list-container">
                     <ul id="factors-list">
                         <!-- Animated bars will be generated here by JavaScript -->
@@ -57,46 +57,39 @@
             const riskCategory = "{{ risk_category }}";
             const featureContributions = JSON.parse('{{ feature_contributions | safe }}');
             
-            // --- New Animated Contribution Bar Logic ---
             const factorsList = document.getElementById('factors-list');
 
             const sortedFeatures = Object.entries(featureContributions)
-                .filter(([key, value]) => Math.abs(value) > 0.001)
-                .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-            
-            const maxImpact = Math.max(...sortedFeatures.map(f => Math.abs(f[1])));
+                .filter(([key, value])=> value > 0.01) // Filter out negligible contributions
+                .sort((a, b) => b[1] - a[1]); // Sort by contribution percentage
 
             sortedFeatures.forEach((feature, index) => {
-                const [name, value] = feature;
+                const [name, percentage] = feature;
                 
                 const listItem = document.createElement('li');
-                const isIncrease = value > 0;
                 
-                // The animated bar element
                 const bar = document.createElement('div');
                 bar.className = 'factor-bar';
-                bar.style.width = `${(Math.abs(value) / maxImpact) * 100}%`;
-                bar.classList.add(isIncrease ? 'risk-increase' : 'risk-decrease');
+                bar.style.width = `${percentage}%`;
+                bar.classList.add('risk-increase');
 
                 const factorName = document.createElement('span');
                 factorName.className = 'factor-name';
-                factorName.textContent = name.replace(/_/g, ' ');
-                
+                // A function to make feature names more readable
+                factorName.textContent = name.replace(/_/g, ' ').replace(/\w/g, l => l.toUpperCase());
+
                 const factorValue = document.createElement('span');
                 factorValue.className = 'factor-value';
-                factorValue.textContent = (isIncrease ? '+' : '') + value.toFixed(2);
+                factorValue.textContent = `${percentage.toFixed(1)}%`;
                 
                 listItem.appendChild(bar);
                 listItem.appendChild(factorName);
                 listItem.appendChild(factorValue);
                 
-                // Staggered animation for a cascade effect
                 listItem.style.animationDelay = `${index * 120}ms`;
                 factorsList.appendChild(listItem);
             });
-            // --- End of New Logic ---
 
-            // (The rest of the gauge animation script remains the same)
             const resultCard = document.getElementById('result-card');
             const resultIcon = document.getElementById('result-icon');
             const animatedScore = document.getElementById('animated-score');

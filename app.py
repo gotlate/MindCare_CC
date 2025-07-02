@@ -250,16 +250,23 @@ def predict_student():
 
     raw_contributions = {feature: float(value) for feature, value in zip(students_cols, shap_values_instance)}
     
+    # New logic to scale contributions
+    total_abs_shap = sum(abs(v) for v in raw_contributions.values())
+    if total_abs_shap > 0:
+        scaled_contributions = {k: (abs(v) / total_abs_shap) * 100 for k, v in raw_contributions.items()}
+    else:
+        scaled_contributions = {k: 0 for k in raw_contributions.keys()}
+        
     feature_contributions = {}
     categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree"]
     for key, value in data.items():
         if key in categorical_features:
             one_hot_key = f"{key}_{value}"
-            if one_hot_key in raw_contributions:
-                feature_contributions[key] = raw_contributions[one_hot_key]
-        elif key in raw_contributions:
-            feature_contributions[key] = raw_contributions[key]
-    
+            if one_hot_key in scaled_contributions:
+                feature_contributions[key] = scaled_contributions[one_hot_key]
+        elif key in scaled_contributions:
+            feature_contributions[key] = scaled_contributions[key]
+
     if risk_score <= 4:
         risk_category = "Low Risk"
         message = "Your risk score is low. Keep up the good work on maintaining your mental well-being."
@@ -297,15 +304,22 @@ def predict_professional():
         
     raw_contributions = {feature: float(value) for feature, value in zip(professionals_cols, shap_values_instance)}
     
+    # New logic to scale contributions
+    total_abs_shap = sum(abs(v) for v in raw_contributions.values())
+    if total_abs_shap > 0:
+        scaled_contributions = {k: (abs(v) / total_abs_shap) * 100 for k, v in raw_contributions.items()}
+    else:
+        scaled_contributions = {k: 0 for k in raw_contributions.keys()}
+        
     feature_contributions = {}
     categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"]
     for key, value in data.items():
         if key in categorical_features:
             one_hot_key = f"{key}_{value}"
-            if one_hot_key in raw_contributions:
-                feature_contributions[key] = raw_contributions[one_hot_key]
-        elif key in raw_contributions:
-            feature_contributions[key] = raw_contributions[key]
+            if one_hot_key in scaled_contributions:
+                feature_contributions[key] = scaled_contributions[one_hot_key]
+        elif key in scaled_contributions:
+            feature_contributions[key] = scaled_contributions[key]
 
     if risk_score <= 4:
         risk_category = "Low Risk"
