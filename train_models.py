@@ -2,14 +2,12 @@ import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_curve, auc
-import xgboost as xgb
+from sklearn.ensemble import RandomForestClassifier
 import joblib
 import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from imblearn.over_sampling import SMOTE
-from sklearn.impute import SimpleImputer
 
 # --- Data Loading and Preprocessing ---
 print("Loading and preprocessing data...")
@@ -73,43 +71,29 @@ X_professionals = X_professionals.reindex(columns=all_cols, fill_value=0)
 
 # --- Model Training and Evaluation ---
 
-# Define a larger parameter grid for RandomizedSearch
-param_grid_xgb_large = {
+# Define parameter grids for Random Forest
+param_grid_rf_large = {
     'n_estimators': [100, 200, 300, 500],
-    'max_depth': [3, 5, 7, 9],
-    'learning_rate': [0.01, 0.05, 0.1],
-    'subsample': [0.7, 0.8, 0.9, 1.0],
-    'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
-    'gamma': [0, 0.1, 0.2]
+    'max_features': ['sqrt', 'log2', None],
+    'max_depth': [10, 20, 30, 40, 50, None],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4],
+    'bootstrap': [True, False]
 }
 
-# Define the original, smaller parameter grid for GridSearchCV
-param_grid_xgb_small = {
+param_grid_rf_small = {
     'n_estimators': [100, 200],
-    'max_depth': [3, 5, 7],
-    'learning_rate': [0.05, 0.1],
-    'subsample': [0.7, 1.0],
-    'colsample_bytree': [0.7, 1.0]
+    'max_depth': [10, 20, None],
+    'min_samples_split': [2, 5],
+    'min_samples_leaf': [1, 2]
 }
 
 # --- Student Model ---
-print("--- Training and Evaluating Student Model (XGBoost with RandomizedSearchCV) ---")
+print("--- Training and Evaluating Student Model (Random Forest with RandomizedSearchCV) ---")
 X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
 
-# Impute missing values for student data
-print("Imputing missing values for student data...")
-# Ensure X_train_stu and X_test_stu are pandas DataFrames before imputation
-X_train_stu = pd.DataFrame(X_train_stu, columns=all_cols)
-X_test_stu = pd.DataFrame(X_test_stu, columns=all_cols)
-
-# Impute missing values for student data
-print("Imputing missing values for student data...")
-imputer_stu = SimpleImputer(strategy='median')
-X_train_stu = imputer_stu.fit_transform(X_train_stu)
-X_test_stu = imputer_stu.transform(X_test_stu)
-
-xgb_stu = xgb.XGBClassifier(eval_metric='logloss', random_state=42)
-random_search_stu = RandomizedSearchCV(estimator=xgb_stu, param_distributions=param_grid_xgb_large, n_iter=100, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42)
+rf_stu = RandomForestClassifier(random_state=42)
+random_search_stu = RandomizedSearchCV(estimator=rf_stu, param_distributions=param_grid_rf_large, n_iter=50, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1, random_state=42)
 random_search_stu.fit(X_train_stu, y_train_stu)
 best_model_students = random_search_stu.best_estimator_
 y_pred_stu = best_model_students.predict(X_test_stu)
@@ -140,65 +124,13 @@ print("Student model ROC curve saved to student_model_roc_curve.png")
 plt.clf()
 
 # --- Professional Model ---
-print("--- Training and Evaluating Professional Model (XGBoost with GridSearchCV, SMOTE, and scale_pos_weight) ---")
+print("--- Training and Evaluating Professional Model (Random Forest with GridSearchCV) ---")
 X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
 
-# Ensure X_train_pro and X_test_pro are pandas DataFrames with correct columns before imputation
-X_train_pro = pd.DataFrame(X_train_pro, columns=all_cols)
-X_test_pro = pd.DataFrame(X_test_pro, columns=all_cols)
-
-# Add print statements to check shapes and column counts before imputation
-print(f"Shape of X_train_pro before imputation: {X_train_pro.shape}")
-print(f"Length of all_cols: {len(all_cols)}")
-print(f"Columns of X_train_pro before imputation: {X_train_pro.columns.tolist()}")
-
-
-# Impute missing values for professional data
-print("Imputing missing values for professional data...")
-imputer_pro = SimpleImputer(strategy='median')
-X_train_pro_imputed = imputer_pro.fit_transform(X_train_pro)
-X_test_pro_imputed = imputer_pro.transform(X_test_pro)
-
-# Calculate scale_pos_weight for professional model due to class imbalance
-print(f"Shape of y_train_pro before value_counts: {y_train_pro.shape}")
-pro_class_counts = pd.Series(y_train_pro).value_counts()
-if 0 in pro_class_counts and 1 in pro_class_counts and pro_class_counts[1] > 0:
-    scale_pos_weight_pro = pro_class_counts[0] / pro_class_counts[1]
-else:
-    scale_pos_weight_pro = 1
-print(f"Calculated scale_pos_weight for professional model: {scale_pos_weight_pro:.2f}")
-
-# Apply SMOTE to the training data
-print("Applying SMOTE to professional training data...")
-smote = SMOTE(random_state=42)
-
-# Add print statements to check data types and missing values before SMOTE
-print(f"Data type of X_train_pro_imputed before SMOTE: {X_train_pro_imputed.dtype}")
-print(f"Number of missing values in X_train_pro_imputed before SMOTE: {np.isnan(X_train_pro_imputed).sum()}")
-print(f"Data type of y_train_pro before SMOTE: {y_train_pro.dtype}")
-
-# Explicitly convert X_train_pro_imputed to float type NumPy array
-X_train_pro_imputed = X_train_pro_imputed.astype(float)
-X_train_pro_resampled, y_train_pro_resampled = smote.fit_resample(X_train_pro_imputed, y_train_pro)
-print(f"Original training set shape: {y_train_pro.shape[0]}")
-print(f"Resampled training set shape: {y_train_pro_resampled.shape[0]}")
-# Convert the resampled array back to a DataFrame
-X_train_pro_resampled = pd.DataFrame(X_train_pro_resampled)
-# Reindex the resampled DataFrame to match all_cols, filling missing columns with 0
-X_train_pro_resampled = X_train_pro_resampled.reindex(columns=all_cols, fill_value=0)
-
-# Assert that the number of features matches the expected columns
-assert X_train_pro_resampled.shape[1] == len(all_cols), "Feature count mismatch in professional training data after SMOTE."
-
-xgb_pro = xgb.XGBClassifier(eval_metric='logloss', random_state=42, scale_pos_weight=scale_pos_weight_pro)
-grid_search_pro = GridSearchCV(estimator=xgb_pro, param_grid=param_grid_xgb_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
-grid_search_pro.fit(X_train_pro_resampled, y_train_pro_resampled)
+rf_pro = RandomForestClassifier(random_state=42)
+grid_search_pro = GridSearchCV(estimator=rf_pro, param_grid=param_grid_rf_small, cv=3, scoring='roc_auc', n_jobs=-1, verbose=1)
+grid_search_pro.fit(X_train_pro, y_train_pro)
 best_model_professionals = grid_search_pro.best_estimator_
-# After imputing X_test_pro, create a pandas DataFrame from the X_test_pro_imputed NumPy array. Then, reindex this DataFrame using all_cols and fill any missing columns with 0. This will ensure the test data has the correct column structure for prediction.
-# Create a DataFrame from the imputed test data
-X_test_pro = pd.DataFrame(X_test_pro_imputed)
-
-X_test_pro = pd.DataFrame(X_test_pro_imputed, columns=all_cols)
 y_pred_pro = best_model_professionals.predict(X_test_pro)
 y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
 
