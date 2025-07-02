@@ -85,10 +85,8 @@ print(f"Accuracy: {accuracy_score(y_test_stu, y_pred_stu):.4f}")
 fpr_stu, tpr_stu, _ = roc_curve(y_test_stu, y_pred_proba_stu)
 roc_auc_stu = auc(fpr_stu, tpr_stu)
 print(f"AUC Score: {roc_auc_stu:.4f}")
-print("Confusion Matrix:
-", confusion_matrix(y_test_stu, y_pred_stu))
-print("Classification Report:
-", classification_report(y_test_stu, y_pred_stu))
+print("Confusion Matrix:", confusion_matrix(y_test_stu, y_pred_stu))
+print("Classification Report:", classification_report(y_test_stu, y_pred_stu))
 
 # Plot and save ROC curve for Student Model
 plt.figure()
@@ -122,10 +120,8 @@ print(f"Accuracy: {accuracy_score(y_test_pro, y_pred_pro):.4f}")
 fpr_pro, tpr_pro, _ = roc_curve(y_test_pro, y_pred_proba_pro)
 roc_auc_pro = auc(fpr_pro, tpr_pro)
 print(f"AUC Score: {roc_auc_pro:.4f}")
-print("Confusion Matrix:
-", confusion_matrix(y_test_pro, y_pred_pro))
-print("Classification Report:
-", classification_report(y_test_pro, y_pred_pro))
+print("Confusion Matrix:", confusion_matrix(y_test_pro, y_pred_pro))
+print("Classification Report:", classification_report(y_test_pro, y_pred_pro))
 
 # Plot and save ROC curve for Professional Model
 plt.figure()
