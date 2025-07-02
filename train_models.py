@@ -106,7 +106,7 @@ best_model_professionals = grid_search_pro.best_estimator_
 y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
 
 # Apply a threshold of 0.6 for professional model predictions
-y_pred_pro = (y_pred_proba_pro >= 0.6).astype(int)
+y_pred_pro = (y_pred_proba_pro >= 0.445).astype(int)
 
 print("Best Professional Model Parameters:")
 print(grid_search_pro.best_params_)
