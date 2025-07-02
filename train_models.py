@@ -21,34 +21,27 @@ professionals_df = df[df['Working Professional or Student'] == "Working Professi
 students_df = students_df.drop(columns=["Work Pressure", "Profession", "Job Satisfaction"])
 professionals_df = professionals_df.drop(columns=["Academic Pressure", "CGPA", "Study Satisfaction"])
 
-# Drop rows with missing values
+# Drop rows with missing values (initial clean-up)
 students_df = students_df.dropna()
 professionals_df = professionals_df.dropna()
 
 # --- Feature Engineering and Encoding ---
 
-# Define mappings and columns
 binary_columns = ['Gender', 'Have you ever had suicidal thoughts ?', 'Family History of Mental Illness']
-ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
-ordinal_cols_students = ["Academic Pressure", "Study Satisfaction", "Financial Stress"]
-ordinal_cols_professionals = ["Work Pressure", "Job Satisfaction", "Financial Stress"]
-one_hot_cols_students = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree']
-one_hot_cols_professionals = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree', 'Profession']
+# Update one_hot_cols to include the previously misidentified ordinal columns
+one_hot_cols_students = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree', 'Academic Pressure', 'Study Satisfaction', 'Financial Stress']
+one_hot_cols_professionals = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree', 'Profession', 'Work Pressure', 'Job Satisfaction', 'Financial Stress']
 
 label_encoder = LabelEncoder()
 
 # Process Students Data
 for col in binary_columns:
     students_df[col] = label_encoder.fit_transform(students_df[col])
-for col in ordinal_cols_students:
-    students_df[col] = students_df[col].map(ordinal_mapping)
 students_df = pd.get_dummies(students_df, columns=one_hot_cols_students)
 
 # Process Professionals Data
 for col in binary_columns:
     professionals_df[col] = label_encoder.fit_transform(professionals_df[col])
-for col in ordinal_cols_professionals:
-    professionals_df[col] = professionals_df[col].map(ordinal_mapping)
 professionals_df = pd.get_dummies(professionals_df, columns=one_hot_cols_professionals)
 
 # --- Prepare Data for Modeling ---
