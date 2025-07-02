@@ -78,6 +78,8 @@ def preprocess_student_data(df, required_columns, scaler):
             df_encoded[col] = 0
     df_aligned = df_encoded[required_columns]
 
+    # Clip Age
+    df_aligned['Age'] = df_aligned['Age'].clip(15, 65)
 
     # Scale numerical features
     df_aligned[numerical_cols] = scaler.transform(df_aligned[numerical_cols])
@@ -107,6 +109,9 @@ def preprocess_professional_data(df, required_columns, scaler):
         if col not in df_encoded.columns:
             df_encoded[col] = 0
     df_aligned = df_encoded[required_columns]
+
+    # Clip Age
+    df_aligned['Age'] = df_aligned['Age'].clip(15, 65)
 
     # Scale numerical features
     df_aligned[numerical_cols] = scaler.transform(df_aligned[numerical_cols])
