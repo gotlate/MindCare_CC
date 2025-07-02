@@ -50,68 +50,48 @@ except FileNotFoundError:
 
 # Define preprocessing functions
 def preprocess_student_data(df, required_columns):
-    df = df.copy() 
+    df = df.copy()
     if "Name" in df.columns:
         df = df.drop(columns=["Name"])
 
+    # Correctly handle binary features to align with training script
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
         if col in df.columns:
             df[col] = df[col].map({"Yes": 1, "No": 0})
     if "Gender" in df.columns:
         df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
 
-    ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
-    for col in ["Academic Pressure", "Study Satisfaction", "Financial Stress"]:
-        if col in df.columns:
-            df[col] = df[col].map(ordinal_mapping)
+    # Convert all other relevant categorical columns to one-hot encoding
+    categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree", "Academic Pressure", "Study Satisfaction", "Financial Stress"] if col in df.columns]
+    df = pd.get_dummies(df, columns=categorical_to_encode, drop_first=False)
 
-    numerical_cols = ['Age', 'CGPA', 'Work/Study Hours']
-    for col in numerical_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-
-    categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree"] if col in df.columns]
-    df = pd.get_dummies(df, columns=categorical_to_encode)
-
+    # Align columns with the model's training columns
     for col in required_columns:
         if col not in df.columns:
-            df[col] = 0 
-    # Ensure the order of columns matches the required columns
-    if not df.columns.equals(pd.Index(required_columns)):
-        df = df[required_columns]
-    return df[required_columns].astype(float) 
+            df[col] = 0
+    return df[required_columns].astype(float)
 
 def preprocess_professional_data(df, required_columns):
     df = df.copy()
     if "Name" in df.columns:
         df = df.drop(columns=["Name"])
 
+    # Correctly handle binary features
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
         if col in df.columns:
             df[col] = df[col].map({"Yes": 1, "No": 0})
     if "Gender" in df.columns:
         df["Gender"] = df["Gender"].map({"Male": 1, "Female": 0})
 
-    ordinal_mapping = {"Low": 0, "Medium": 1, "High": 2}
-    for col in ["Work Pressure", "Job Satisfaction", "Financial Stress"]:
-        if col in df.columns:
-            df[col] = df[col].map(ordinal_mapping)
+    # Convert all other relevant categorical columns to one-hot encoding
+    categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession", "Work Pressure", "Job Satisfaction", "Financial Stress"] if col in df.columns]
+    df = pd.get_dummies(df, columns=categorical_to_encode, drop_first=False)
 
-    numerical_cols = ['Age', 'Work/Study Hours']
-    for col in numerical_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-
-    categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"] if col in df.columns]
-    df = pd.get_dummies(df, columns=categorical_to_encode)
-
+    # Align columns
     for col in required_columns:
         if col not in df.columns:
-            df[col] = 0 
-    # Ensure the order of columns matches the required columns
-    if not df.columns.equals(pd.Index(required_columns)):
-        df = df[required_columns]
-    return df[required_columns].astype(float) 
+            df[col] = 0
+    return df[required_columns].astype(float)
 
 
 app = Flask(__name__)
@@ -226,9 +206,39 @@ def get_degrees():
         filtered_degrees = ["Other / Not Applicable"]
     return jsonify({'degrees': filtered_degrees})
 
+def get_aggregated_contributions(shap_values_instance, model_columns, original_feature_names):
+    """Aggregates SHAP values for one-hot encoded features and scales them."""
+    raw_contributions = {feature: float(value) for feature, value in zip(model_columns, shap_values_instance)}
+    aggregated_contributions = {}
+
+    # Get the list of features that were originally categorical and got one-hot encoded
+    categorical_features_encoded = set()
+    for col in model_columns:
+        if '_' in col:
+            categorical_features_encoded.add(col.split('_')[0])
+
+    for feature in original_feature_names:
+        # If the feature was one-hot encoded, sum its parts
+        if feature in categorical_features_encoded:
+            total_feature_shap = sum(v for k, v in raw_contributions.items() if k.startswith(f"{feature}_"))
+            aggregated_contributions[feature] = total_feature_shap
+        # Otherwise, take its direct value
+        elif feature in raw_contributions:
+            aggregated_contributions[feature] = raw_contributions[feature]
+
+    # Scale the absolute contributions to sum to 100%
+    total_abs_shap = sum(abs(v) for v in aggregated_contributions.values())
+    if total_abs_shap > 0:
+        scaled_percentages = {k: (abs(v) / total_abs_shap) * 100 for k, v in aggregated_contributions.items()}
+    else:
+        scaled_percentages = {k: 0 for k in aggregated_contributions.keys()}
+        
+    return scaled_percentages
+
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
     data = request.get_json()
+    original_features = list(data.keys()) # Capture original feature names before processing
     try:
         user_df = pd.DataFrame([data], index=[0])
         processed_data = preprocess_student_data(user_df.copy(), students_cols)
@@ -236,8 +246,6 @@ def predict_student():
             return jsonify({'error': 'Error processing input data: Feature shape mismatch.'}), 400
     except Exception as e:
         return jsonify({'error': f'Error during data preprocessing: {str(e)}'}), 400
-
-
 
     risk_score = best_model_students.predict_proba(processed_data)[:, 1] * 10
     risk_score = round(float(risk_score[0]), 2)
@@ -248,24 +256,7 @@ def predict_student():
     else:
         shap_values_instance = shap_values[0]
 
-    raw_contributions = {feature: float(value) for feature, value in zip(students_cols, shap_values_instance)}
-    
-    # New logic to scale contributions
-    total_abs_shap = sum(abs(v) for v in raw_contributions.values())
-    if total_abs_shap > 0:
-        scaled_contributions = {k: (abs(v) / total_abs_shap) * 100 for k, v in raw_contributions.items()}
-    else:
-        scaled_contributions = {k: 0 for k in raw_contributions.keys()}
-        
-    feature_contributions = {}
-    categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree"]
-    for key, value in data.items():
-        if key in categorical_features:
-            one_hot_key = f"{key}_{value}"
-            if one_hot_key in scaled_contributions:
-                feature_contributions[key] = scaled_contributions[one_hot_key]
-        elif key in scaled_contributions:
-            feature_contributions[key] = scaled_contributions[key]
+    feature_contributions = get_aggregated_contributions(shap_values_instance, students_cols, original_features)
 
     if risk_score <= 4:
         risk_category = "Low Risk"
@@ -284,6 +275,7 @@ def predict_student():
 @app.route('/predict/professional', methods=['POST'])
 def predict_professional():
     data = request.get_json()
+    original_features = list(data.keys()) # Capture original feature names
     try:
         user_df = pd.DataFrame([data], index=[0])
         processed_data = preprocess_professional_data(user_df.copy(), professionals_cols)
@@ -302,24 +294,7 @@ def predict_professional():
     else:
         shap_values_instance = shap_values[0]
         
-    raw_contributions = {feature: float(value) for feature, value in zip(professionals_cols, shap_values_instance)}
-    
-    # New logic to scale contributions
-    total_abs_shap = sum(abs(v) for v in raw_contributions.values())
-    if total_abs_shap > 0:
-        scaled_contributions = {k: (abs(v) / total_abs_shap) * 100 for k, v in raw_contributions.items()}
-    else:
-        scaled_contributions = {k: 0 for k in raw_contributions.keys()}
-        
-    feature_contributions = {}
-    categorical_features = ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession"]
-    for key, value in data.items():
-        if key in categorical_features:
-            one_hot_key = f"{key}_{value}"
-            if one_hot_key in scaled_contributions:
-                feature_contributions[key] = scaled_contributions[one_hot_key]
-        elif key in scaled_contributions:
-            feature_contributions[key] = scaled_contributions[key]
+    feature_contributions = get_aggregated_contributions(shap_values_instance, professionals_cols, original_features)
 
     if risk_score <= 4:
         risk_category = "Low Risk"
