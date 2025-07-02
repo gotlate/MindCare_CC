@@ -207,7 +207,7 @@ def get_degrees():
     return jsonify({'degrees': filtered_degrees})
 
 def get_aggregated_contributions(shap_values_instance, model_columns, original_feature_names):
-    """Aggregates SHAP values for one-hot encoded features and scales them."""
+    """Aggregates SHAP values for one-hot encoded features and scales them, preserving the sign."""
     raw_contributions = {feature: float(value) for feature, value in zip(model_columns, shap_values_instance)}
     aggregated_contributions = {}
 
@@ -226,14 +226,16 @@ def get_aggregated_contributions(shap_values_instance, model_columns, original_f
         elif feature in raw_contributions:
             aggregated_contributions[feature] = raw_contributions[feature]
 
-    # Scale the absolute contributions to sum to 100%
+    # The denominator is the sum of the MAGNITUDE of all contributions
     total_abs_shap = sum(abs(v) for v in aggregated_contributions.values())
+    
     if total_abs_shap > 0:
-        scaled_percentages = {k: (abs(v) / total_abs_shap) * 100 for k, v in aggregated_contributions.items()}
+        # The numerator is the ACTUAL signed contribution. This gives a signed percentage.
+        signed_percentages = {k: (v / total_abs_shap) * 100 for k, v in aggregated_contributions.items()}
     else:
-        scaled_percentages = {k: 0 for k in aggregated_contributions.keys()}
+        signed_percentages = {k: 0 for k in aggregated_contributions.keys()}
         
-    return scaled_percentages
+    return signed_percentages
 
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
