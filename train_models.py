@@ -38,11 +38,19 @@ label_encoder = LabelEncoder()
 # Process Students Data
 for col in binary_columns:
     students_df[col] = label_encoder.fit_transform(students_df[col])
+
+# Clip Age before one-hot encoding
+students_df['Age'] = students_df['Age'].clip(15, 65)
+
 students_df = pd.get_dummies(students_df, columns=one_hot_cols_students)
 
 # Process Professionals Data
 for col in binary_columns:
     professionals_df[col] = label_encoder.fit_transform(professionals_df[col])
+
+# Clip Age before one-hot encoding
+professionals_df['Age'] = professionals_df['Age'].clip(15, 65)
+
 professionals_df = pd.get_dummies(professionals_df, columns=one_hot_cols_professionals)
 
 # --- Prepare Data for Modeling ---
