@@ -70,16 +70,19 @@ def preprocess_student_data(df, required_columns, scaler):
 
     # Convert all other relevant categorical columns to one-hot encoding
     categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree", "Academic Pressure", "Study Satisfaction", "Financial Stress"] if col in df.columns]
-    df = pd.get_dummies(df, columns=categorical_to_encode, drop_first=False)
+    df_encoded = pd.get_dummies(df, columns=categorical_to_encode, drop_first=False)
+
+    # Align columns before scaling
+    for col in required_columns:
+        if col not in df_encoded.columns:
+            df_encoded[col] = 0
+    df_aligned = df_encoded[required_columns]
+
 
     # Scale numerical features
-    df[numerical_cols] = scaler.transform(df[numerical_cols])
+    df_aligned[numerical_cols] = scaler.transform(df_aligned[numerical_cols])
 
-    # Align columns with the model's training columns
-    for col in required_columns:
-        if col not in df.columns:
-            df[col] = 0
-    return df[required_columns].astype(float)
+    return df_aligned.astype(float)
 
 def preprocess_professional_data(df, required_columns, scaler):
     df = df.copy()
@@ -97,16 +100,18 @@ def preprocess_professional_data(df, required_columns, scaler):
 
     # Convert all other relevant categorical columns to one-hot encoding
     categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession", "Work Pressure", "Job Satisfaction", "Financial Stress"] if col in df.columns]
-    df = pd.get_dummies(df, columns=categorical_to_encode, drop_first=False)
+    df_encoded = pd.get_dummies(df, columns=categorical_to_encode, drop_first=False)
+
+    # Align columns before scaling
+    for col in required_columns:
+        if col not in df_encoded.columns:
+            df_encoded[col] = 0
+    df_aligned = df_encoded[required_columns]
 
     # Scale numerical features
-    df[numerical_cols] = scaler.transform(df[numerical_cols])
+    df_aligned[numerical_cols] = scaler.transform(df_aligned[numerical_cols])
 
-    # Align columns
-    for col in required_columns:
-        if col not in df.columns:
-            df[col] = 0
-    return df[required_columns].astype(float)
+    return df_aligned.astype(float)
 
 
 app = Flask(__name__)
@@ -221,41 +226,33 @@ def get_degrees():
         filtered_degrees = ["Other / Not Applicable"]
     return jsonify({'degrees': filtered_degrees})
 
-def get_aggregated_contributions(shap_values_instance, model_columns, original_feature_names):
-    """Aggregates SHAP values for one-hot encoded features and scales them, preserving the sign."""
+def get_final_contributions(shap_values_instance, model_columns, user_input_data):
+    """Gets SHAP contributions for only the specific user-selected values."""
     raw_contributions = {feature: float(value) for feature, value in zip(model_columns, shap_values_instance)}
-    aggregated_contributions = {}
+    final_contributions = {}
 
-    # Get the list of features that were originally categorical and got one-hot encoded
-    categorical_features_encoded = set()
-    for col in model_columns:
-        if '_' in col:
-            categorical_features_encoded.add(col.split('_')[0])
+    for feature, value in user_input_data.items():
+        # Handle numerical features and binary features directly
+        if feature in raw_contributions:
+            final_contributions[feature] = raw_contributions[feature]
+        # Handle one-hot encoded categorical features
+        else:
+            one_hot_col_name = f"{feature}_{value}"
+            if one_hot_col_name in raw_contributions:
+                final_contributions[feature] = raw_contributions[one_hot_col_name]
 
-    for feature in original_feature_names:
-        # If the feature was one-hot encoded, sum its parts
-        if feature in categorical_features_encoded:
-            total_feature_shap = sum(v for k, v in raw_contributions.items() if k.startswith(f"{feature}_"))
-            aggregated_contributions[feature] = total_feature_shap
-        # Otherwise, take its direct value
-        elif feature in raw_contributions:
-            aggregated_contributions[feature] = raw_contributions[feature]
-
-    # The denominator is the sum of the MAGNITUDE of all contributions
-    total_abs_shap = sum(abs(v) for v in aggregated_contributions.values())
-    
+    # Scale the contributions to a percentage
+    total_abs_shap = sum(abs(v) for v in final_contributions.values())
     if total_abs_shap > 0:
-        # The numerator is the ACTUAL signed contribution. This gives a signed percentage.
-        signed_percentages = {k: (v / total_abs_shap) * 100 for k, v in aggregated_contributions.items()}
+        signed_percentages = {k: (v / total_abs_shap) * 100 for k, v in final_contributions.items()}
     else:
-        signed_percentages = {k: 0 for k in aggregated_contributions.keys()}
+        signed_percentages = {k: 0 for k in final_contributions.keys()}
         
     return signed_percentages
 
 @app.route('/predict/student', methods=['POST'])
 def predict_student():
     data = request.get_json()
-    original_features = list(data.keys()) # Capture original feature names before processing
     try:
         user_df = pd.DataFrame([data], index=[0])
         processed_data = preprocess_student_data(user_df.copy(), students_cols, student_scaler)
@@ -273,7 +270,7 @@ def predict_student():
     else:
         shap_values_instance = shap_values[0]
 
-    feature_contributions = get_aggregated_contributions(shap_values_instance, students_cols, original_features)
+    feature_contributions = get_final_contributions(shap_values_instance, students_cols, data)
 
     if risk_score <= 4:
         risk_category = "Low Risk"
@@ -292,7 +289,6 @@ def predict_student():
 @app.route('/predict/professional', methods=['POST'])
 def predict_professional():
     data = request.get_json()
-    original_features = list(data.keys()) # Capture original feature names
     try:
         user_df = pd.DataFrame([data], index=[0])
         processed_data = preprocess_professional_data(user_df.copy(), professionals_cols, professional_scaler)
@@ -311,7 +307,7 @@ def predict_professional():
     else:
         shap_values_instance = shap_values[0]
         
-    feature_contributions = get_aggregated_contributions(shap_values_instance, professionals_cols, original_features)
+    feature_contributions = get_final_contributions(shap_values_instance, professionals_cols, data)
 
     if risk_score <= 4:
         risk_category = "Low Risk"
