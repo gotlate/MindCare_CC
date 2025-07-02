@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
 import joblib
@@ -28,9 +28,10 @@ professionals_df = professionals_df.dropna()
 # --- Feature Engineering and Encoding ---
 
 binary_columns = ['Gender', 'Have you ever had suicidal thoughts ?', 'Family History of Mental Illness']
-# Update one_hot_cols to include the previously misidentified ordinal columns
 one_hot_cols_students = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree', 'Academic Pressure', 'Study Satisfaction', 'Financial Stress']
 one_hot_cols_professionals = ['City', 'Dietary Habits', 'Sleep Duration', 'Degree', 'Profession', 'Work Pressure', 'Job Satisfaction', 'Financial Stress']
+numerical_cols_students = ['Age', 'CGPA', 'Work/Study Hours']
+numerical_cols_professionals = ['Age', 'Work/Study Hours']
 
 label_encoder = LabelEncoder()
 
@@ -51,6 +52,19 @@ y_students = label_encoder.fit_transform(students_df["Depression"])
 X_professionals = professionals_df.drop(columns=["Depression", "Working Professional or Student", "Name"])
 y_professionals = label_encoder.fit_transform(professionals_df["Depression"])
 
+# Split data before scaling to prevent data leakage
+X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
+X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
+
+# --- Feature Scaling ---
+student_scaler = StandardScaler()
+X_train_stu[numerical_cols_students] = student_scaler.fit_transform(X_train_stu[numerical_cols_students])
+X_test_stu[numerical_cols_students] = student_scaler.transform(X_test_stu[numerical_cols_students])
+
+professional_scaler = StandardScaler()
+X_train_pro[numerical_cols_professionals] = professional_scaler.fit_transform(X_train_pro[numerical_cols_professionals])
+X_test_pro[numerical_cols_professionals] = professional_scaler.transform(X_test_pro[numerical_cols_professionals])
+
 # --- Model Training and Evaluation ---
 
 # Define the parameter grid from application.py
@@ -62,8 +76,6 @@ param_grid = {
 
 # --- Student Model ---
 print("--- Training and Evaluating Student Model (Random Forest with GridSearchCV) ---")
-X_train_stu, X_test_stu, y_train_stu, y_test_stu = train_test_split(X_students, y_students, test_size=0.2, random_state=42, stratify=y_students)
-
 rf_stu = RandomForestClassifier(class_weight='balanced', random_state=42)
 grid_search_stu = GridSearchCV(estimator=rf_stu, param_grid=param_grid, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_stu.fit(X_train_stu, y_train_stu)
@@ -97,20 +109,18 @@ plt.clf()
 
 # --- Professional Model ---
 print("--- Training and Evaluating Professional Model (Random Forest with GridSearchCV) ---")
-X_train_pro, X_test_pro, y_train_pro, y_test_pro = train_test_split(X_professionals, y_professionals, test_size=0.2, random_state=42, stratify=y_professionals)
-
 rf_pro = RandomForestClassifier(class_weight='balanced', random_state=42)
 grid_search_pro = GridSearchCV(estimator=rf_pro, param_grid=param_grid, cv=5, scoring='roc_auc', n_jobs=-1, verbose=1)
 grid_search_pro.fit(X_train_pro, y_train_pro)
 best_model_professionals = grid_search_pro.best_estimator_
 y_pred_proba_pro = best_model_professionals.predict_proba(X_test_pro)[:, 1]
 
-# Apply a threshold of 0.6 for professional model predictions
+# Apply a threshold of 0.445 for professional model predictions
 y_pred_pro = (y_pred_proba_pro >= 0.445).astype(int)
 
 print("Best Professional Model Parameters:")
 print(grid_search_pro.best_params_)
-print("Professional Model Performance Metrics (Threshold = 0.6):")
+print("Professional Model Performance Metrics (Threshold = 0.445):")
 print(f"Accuracy: {accuracy_score(y_test_pro, y_pred_pro):.4f}")
 fpr_pro, tpr_pro, _ = roc_curve(y_test_pro, y_pred_proba_pro)
 roc_auc_pro = auc(fpr_pro, tpr_pro)
@@ -132,14 +142,16 @@ plt.savefig('professional_model_roc_curve.png')
 print("Professional model ROC curve saved to professional_model_roc_curve.png")
 plt.clf()
 
-# --- Save Models and Columns ---
+# --- Save Models, Columns, and Scalers ---
 models_dir = 'models'
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 
 joblib.dump(best_model_students, os.path.join(models_dir, 'best_model_students.pkl'))
 joblib.dump(best_model_professionals, os.path.join(models_dir, 'best_model_professionals.pkl'))
-print(f"Models saved successfully in '{models_dir}' directory.")
+joblib.dump(student_scaler, os.path.join(models_dir, 'student_scaler.pkl'))
+joblib.dump(professional_scaler, os.path.join(models_dir, 'professional_scaler.pkl'))
+print(f"Models and scalers saved successfully in '{models_dir}' directory.")
 
 # Save the column lists for student and professional models separately
 with open(os.path.join(models_dir, 'student_columns.json'), 'w') as f:
