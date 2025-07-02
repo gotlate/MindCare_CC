@@ -20,9 +20,14 @@ try:
     professional_model_path = os.path.join(models_dir, 'best_model_professionals.pkl')
     student_cols_path = os.path.join(models_dir, 'student_columns.json')
     professional_cols_path = os.path.join(models_dir, 'professional_columns.json')
+    student_scaler_path = os.path.join(models_dir, 'student_scaler.pkl')
+    professional_scaler_path = os.path.join(models_dir, 'professional_scaler.pkl')
+
 
     best_model_students = joblib.load(student_model_path)
     best_model_professionals = joblib.load(professional_model_path)
+    student_scaler = joblib.load(student_scaler_path)
+    professional_scaler = joblib.load(professional_scaler_path)
     with open(student_cols_path, 'r') as f:
         students_cols = json.load(f)
     with open(professional_cols_path, 'r') as f:
@@ -49,10 +54,12 @@ except FileNotFoundError:
     sys.exit(1)
 
 # Define preprocessing functions
-def preprocess_student_data(df, required_columns):
+def preprocess_student_data(df, required_columns, scaler):
     df = df.copy()
     if "Name" in df.columns:
         df = df.drop(columns=["Name"])
+
+    numerical_cols = ['Age', 'CGPA', 'Work/Study Hours']
 
     # Correctly handle binary features to align with training script
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
@@ -65,16 +72,21 @@ def preprocess_student_data(df, required_columns):
     categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree", "Academic Pressure", "Study Satisfaction", "Financial Stress"] if col in df.columns]
     df = pd.get_dummies(df, columns=categorical_to_encode, drop_first=False)
 
+    # Scale numerical features
+    df[numerical_cols] = scaler.transform(df[numerical_cols])
+
     # Align columns with the model's training columns
     for col in required_columns:
         if col not in df.columns:
             df[col] = 0
     return df[required_columns].astype(float)
 
-def preprocess_professional_data(df, required_columns):
+def preprocess_professional_data(df, required_columns, scaler):
     df = df.copy()
     if "Name" in df.columns:
         df = df.drop(columns=["Name"])
+
+    numerical_cols = ['Age', 'Work/Study Hours']
 
     # Correctly handle binary features
     for col in ["Have you ever had suicidal thoughts ?", "Family History of Mental Illness"]:
@@ -86,6 +98,9 @@ def preprocess_professional_data(df, required_columns):
     # Convert all other relevant categorical columns to one-hot encoding
     categorical_to_encode = [col for col in ["City", "Dietary Habits", "Sleep Duration", "Degree", "Profession", "Work Pressure", "Job Satisfaction", "Financial Stress"] if col in df.columns]
     df = pd.get_dummies(df, columns=categorical_to_encode, drop_first=False)
+
+    # Scale numerical features
+    df[numerical_cols] = scaler.transform(df[numerical_cols])
 
     # Align columns
     for col in required_columns:
@@ -243,7 +258,7 @@ def predict_student():
     original_features = list(data.keys()) # Capture original feature names before processing
     try:
         user_df = pd.DataFrame([data], index=[0])
-        processed_data = preprocess_student_data(user_df.copy(), students_cols)
+        processed_data = preprocess_student_data(user_df.copy(), students_cols, student_scaler)
         if processed_data.empty or processed_data.shape[1] != len(students_cols):
             return jsonify({'error': 'Error processing input data: Feature shape mismatch.'}), 400
     except Exception as e:
@@ -280,7 +295,7 @@ def predict_professional():
     original_features = list(data.keys()) # Capture original feature names
     try:
         user_df = pd.DataFrame([data], index=[0])
-        processed_data = preprocess_professional_data(user_df.copy(), professionals_cols)
+        processed_data = preprocess_professional_data(user_df.copy(), professionals_cols, professional_scaler)
         if processed_data.empty or processed_data.shape[1] != len(professionals_cols):
              return jsonify({'error': 'Error processing input data: Feature shape mismatch.'}), 400
     except Exception as e:
