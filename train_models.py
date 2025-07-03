@@ -105,6 +105,12 @@ print(f"AUC Score: {roc_auc_stu:.4f}")
 print("Confusion Matrix:", confusion_matrix(y_test_stu, y_pred_stu))
 print("Classification Report:", classification_report(y_test_stu, y_pred_stu))
 
+# Print Student Model Feature Importances
+feature_importances_stu = pd.DataFrame({'feature': X_train_stu.columns, 'importance': best_model_students.feature_importances_})
+feature_importances_stu = feature_importances_stu.sort_values(by='importance', ascending=False)
+print("Student Model Feature Importances:")
+print(feature_importances_stu)
+
 # Plot and save ROC curve for Student Model
 plt.figure()
 plt.plot(fpr_stu, tpr_stu, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc_stu:.2f})')
@@ -139,6 +145,12 @@ roc_auc_pro = auc(fpr_pro, tpr_pro)
 print(f"AUC Score: {roc_auc_pro:.4f}")
 print("Confusion Matrix:", confusion_matrix(y_test_pro, y_pred_pro))
 print("Classification Report:", classification_report(y_test_pro, y_pred_pro))
+
+# Print Professional Model Feature Importances
+feature_importances_pro = pd.DataFrame({'feature': X_train_pro.columns, 'importance': best_model_professionals.feature_importances_})
+feature_importances_pro = feature_importances_pro.sort_values(by='importance', ascending=False)
+print("Professional Model Feature Importances:")
+print(feature_importances_pro)
 
 # Plot and save ROC curve for Professional Model
 plt.figure()
