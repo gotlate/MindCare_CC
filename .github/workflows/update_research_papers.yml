@@ -43,6 +43,7 @@ jobs:
         )
       env:
         # GITHUB_TOKEN is automatically provided by GitHub Actions for repository write access
-        # No need to manually create a PAT if you are pushing to the same repo.
-        # However, for advanced scenarios or different repos, you might need a PAT:
+        # This line explicitly sets it, making the 'env' block non-empty for strict parsers.
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # For advanced scenarios or different repos, you might need a PAT:
         # GH_TOKEN: ${{ secrets.YOUR_PAT_SECRET_NAME }}
