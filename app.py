@@ -10,6 +10,10 @@ import shap
 # Add the directory containing the models to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'models')))
 
+# List of features to exclude from the risk factor breakdown presented to the user
+# These are typically non-actionable demographic features.
+excluded_features_from_breakdown = ['Age', 'Gender']
+
 # Construct absolute paths to the model files and load them globally
 base_dir = os.path.dirname(os.path.abspath(__file__))
 models_dir = os.path.join(base_dir, 'models')
@@ -234,19 +238,27 @@ def get_degrees():
 def get_final_contributions(shap_values_instance, model_columns, user_input_data):
     """Gets SHAP contributions for only the specific user-selected values."""
     raw_contributions = {feature: float(value) for feature, value in zip(model_columns, shap_values_instance)}
+    
     final_contributions = {}
-
     for feature, value in user_input_data.items():
+        # Skip features that are in the exclusion list
+        if feature in excluded_features_from_breakdown:
+            continue
+
         # Handle numerical features and binary features directly
         if feature in raw_contributions:
             final_contributions[feature] = raw_contributions[feature]
         # Handle one-hot encoded categorical features
         else:
-            one_hot_col_name = f"{feature}_{value}"
-            if one_hot_col_name in raw_contributions:
-                final_contributions[feature] = raw_contributions[one_hot_col_name]
+            # Iterate through raw_contributions to find matching one-hot encoded columns
+            for one_hot_col in raw_contributions.keys():
+                if one_hot_col.startswith(f"{feature}_"):
+                    # Check if the one-hot encoded column corresponds to the user's selected value
+                    if one_hot_col == f"{feature}_{value}":
+                        final_contributions[feature] = raw_contributions[one_hot_col]
+                        break # Found the specific one-hot feature, move to next user input feature
 
-    # Scale the contributions to a percentage
+    # Scale the contributions to a percentage, only considering the included features
     total_abs_shap = sum(abs(v) for v in final_contributions.values())
     if total_abs_shap > 0:
         signed_percentages = {k: (v / total_abs_shap) * 100 for k, v in final_contributions.items()}
