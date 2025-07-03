@@ -31,45 +31,59 @@ def save_resources(file_path, resources):
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(resources, f, indent=4, ensure_ascii=False)
 
-def scrape_semantic_scholar(query):
+def scrape_semantic_scholar(query, max_retries=5, initial_delay=60):
     results = []
-    try:
-        params = {
-            'query': query,
-            'limit': 10,  # Number of results per page
-            'fields': 'title,abstract,url,publicationDate',
-            'sort': 'publicationDate:desc' # Sort by publication date, newest first
-        }
-        response = requests.get(SEMANTIC_SCHOLAR_API_URL, params=params)
-        response.raise_for_status()
-        data = response.json()
-        
-        if 'data' in data:
-            for paper in data['data']:
-                title = paper.get('title', 'No Title')
-                description = paper.get('abstract') # Get abstract, will be None if not present
-                url = paper.get('url', '#') # Default to '#' if url is missing
-                publication_date = paper.get('publicationDate') # Get publication date
+    for retry_num in range(max_retries):
+        try:
+            params = {
+                'query': query,
+                'limit': 10,  # Number of results per page
+                'fields': 'title,abstract,url,publicationDate',
+                'sort': 'publicationDate:desc' # Sort by publication date, newest first
+            }
+            print(f"Attempt {retry_num + 1} for query: {query}")
+            response = requests.get(SEMANTIC_SCHOLAR_API_URL, params=params)
+            response.raise_for_status() # Raise an exception for HTTP errors
+            data = response.json()
+            
+            if 'data' in data:
+                for paper in data['data']:
+                    title = paper.get('title', 'No Title')
+                    description = paper.get('abstract') # Get abstract, will be None if not present
+                    url = paper.get('url', '#') # Default to '#' if url is missing
+                    publication_date = paper.get('publicationDate') # Get publication date
 
-                # Only add paper if it has a description (abstract) AND a valid URL (not just '#')
-                if description and description.strip() and url and url != '#':
-                    results.append({
-                        "title": title,
-                        "description": description,
-                        "url": url,
-                        "publicationDate": publication_date # Store publication date
-                    })
-        else:
-            print(f"No data found for query: {query}")
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching from Semantic Scholar for query '{query}': {e}")
-    except KeyError as e:
-        print(f"Error parsing Semantic Scholar response for query '{query}': Missing key {e}")
-    return results
+                    # Only add paper if it has a description (abstract) AND a valid URL (not just '#')
+                    if description and description.strip() and url and url != '#':
+                        results.append({
+                            "title": title,
+                            "description": description,
+                            "url": url,
+                            "publicationDate": publication_date # Store publication date
+                        })
+            else:
+                print(f"No data found for query: {query}")
+            return results # Success! Exit the retry loop
+
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 429: # Too Many Requests
+                delay = initial_delay * (2 ** retry_num) # Exponential backoff
+                print(f"Rate limit hit for query '{query}'. Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                print(f"HTTP Error fetching from Semantic Scholar for query '{query}': {e}")
+                break # For other HTTP errors, don't retry
+        except requests.exceptions.RequestException as e:
+            print(f"Network or other request error for query '{query}': {e}")
+            break # For network errors, don't retry immediately
+        except KeyError as e:
+            print(f"Error parsing Semantic Scholar response for query '{query}': Missing key {e}")
+            break
+    print(f"Failed to fetch data for query '{query}' after {max_retries} retries.")
+    return [] # Return empty list if all retries fail
 
 def update_research_papers():
     print("Updating student research papers...")
-    time.sleep(60) # Increased delay to 1 minute
     student_resources = load_resources(STUDENT_RESOURCES_PATH)
     student_research = scrape_semantic_scholar(STUDENT_RESEARCH_QUERY)
     
@@ -93,8 +107,13 @@ def update_research_papers():
         student_resources["Research & Studies"] = sorted_student_papers
         save_resources(STUDENT_RESOURCES_PATH, student_resources)
         print(f"Updated student research papers. Total: {len(sorted_student_papers)}")
+    else:
+        print("No new student research papers found or failed to fetch.")
     
-    time.sleep(60) # Increased delay to 1 minute
+    # No fixed time.sleep() between calls here, as scrape_semantic_scholar now handles its own delays
+    # if it retries. This ensures calls are not too frequent if previous one failed.
+    # However, if the first call succeeded quickly, we might still want a small buffer.
+    time.sleep(10) # Small buffer between successful API calls
 
     print("Updating professional research papers...")
     professional_resources = load_resources(PROFESSIONAL_RESOURCES_PATH)
@@ -120,6 +139,8 @@ def update_research_papers():
         professional_resources["Research & Studies"] = sorted_professional_papers
         save_resources(PROFESSIONAL_RESOURCES_PATH, professional_resources)
         print(f"Updated professional research papers. Total: {len(sorted_professional_papers)}")
+    else:
+        print("No new professional research papers found or failed to fetch.")
 
 if __name__ == "__main__":
     if not os.path.exists(DATA_DIR):
