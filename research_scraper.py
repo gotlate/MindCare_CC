@@ -67,10 +67,9 @@ def scrape_semantic_scholar(query):
         print(f"Error parsing Semantic Scholar response for query '{query}': Missing key {e}")
     return results
 
-
 def update_research_papers():
     print("Updating student research papers...")
-    time.sleep(5) # Add delay before the first API call
+    time.sleep(30) # Increased delay
     student_resources = load_resources(STUDENT_RESOURCES_PATH)
     student_research = scrape_semantic_scholar(STUDENT_RESEARCH_QUERY)
     
@@ -95,7 +94,7 @@ def update_research_papers():
         save_resources(STUDENT_RESOURCES_PATH, student_resources)
         print(f"Updated student research papers. Total: {len(sorted_student_papers)}")
     
-    time.sleep(10) # Increased delay between requests
+    time.sleep(30) # Increased delay
 
     print("Updating professional research papers...")
     professional_resources = load_resources(PROFESSIONAL_RESOURCES_PATH)
