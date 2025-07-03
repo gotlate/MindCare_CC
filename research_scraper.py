@@ -69,7 +69,7 @@ def scrape_semantic_scholar(query):
 
 def update_research_papers():
     print("Updating student research papers...")
-    time.sleep(30) # Increased delay
+    time.sleep(60) # Increased delay to 1 minute
     student_resources = load_resources(STUDENT_RESOURCES_PATH)
     student_research = scrape_semantic_scholar(STUDENT_RESEARCH_QUERY)
     
@@ -94,7 +94,7 @@ def update_research_papers():
         save_resources(STUDENT_RESOURCES_PATH, student_resources)
         print(f"Updated student research papers. Total: {len(sorted_student_papers)}")
     
-    time.sleep(30) # Increased delay
+    time.sleep(60) # Increased delay to 1 minute
 
     print("Updating professional research papers...")
     professional_resources = load_resources(PROFESSIONAL_RESOURCES_PATH)
