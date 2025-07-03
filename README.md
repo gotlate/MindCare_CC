@@ -43,10 +43,3 @@ The research paper section is automatically updated monthly using GitHub Actions
 *   If new or updated papers are found, the workflow automatically commits these changes to your `data/*.json` files and pushes them back to your GitHub repository.
 *   Due to Render's auto-deploy feature, this new commit will automatically trigger a redeployment of your web service, ensuring the live application displays the most current research.
 
-## License
-
-This project is released under the **MIT License**. This means you are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, provided you include the original copyright and permission notice. For more details, see the `LICENSE` file in this repository.
-
-## Contact
-
-For questions or feedback, please contact [Your Name/Email] or open an issue on the GitHub repository.
