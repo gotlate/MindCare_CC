@@ -41,5 +41,5 @@ The research paper section is automatically updated monthly using GitHub Actions
 *   A GitHub Actions workflow is scheduled to run at `00:00 UTC` on the `1st day of every month`.
 *   It executes `research_scraper.py`, which fetches the latest papers from Semantic Scholar.
 *   If new or updated papers are found, the workflow automatically commits these changes to your `data/*.json` files and pushes them back to your GitHub repository.
-*   Due to Render's auto-deploy feature, this new commit will automatically trigger a redeployment of your web service, ensuring the live application displays the most current research.
+*   Due to Render's auto-deploy feature, this new commit will automatically trigger a redeployment of the web service, ensuring the live application displays the most current research.
 
