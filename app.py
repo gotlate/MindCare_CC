@@ -19,14 +19,15 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 models_dir = os.path.join(base_dir, 'models')
 data_dir = os.path.join(base_dir, 'data')
 
+# --- GLOBAL MODEL AND DATA LOADING WITH ERROR HANDLING ---
 try:
+    print("Attempting to load models, scalers, and column files...")
     student_model_path = os.path.join(models_dir, 'best_model_students.pkl')
     professional_model_path = os.path.join(models_dir, 'best_model_professionals.pkl')
     student_cols_path = os.path.join(models_dir, 'student_columns.json')
     professional_cols_path = os.path.join(models_dir, 'professional_columns.json')
     student_scaler_path = os.path.join(models_dir, 'student_scaler.pkl')
     professional_scaler_path = os.path.join(models_dir, 'professional_scaler.pkl')
-
 
     best_model_students = joblib.load(student_model_path)
     best_model_professionals = joblib.load(professional_model_path)
@@ -40,21 +41,38 @@ try:
     # Create SHAP Explainers
     student_explainer = shap.TreeExplainer(best_model_students)
     professional_explainer = shap.TreeExplainer(best_model_professionals)
+    print("Models, scalers, and column files loaded successfully.")
 
-except FileNotFoundError:
-    print("Error: Model or columns file not found. Please run train_models.py first.")
+except FileNotFoundError as e:
+    print(f"CRITICAL ERROR: Model or columns file not found at startup: {e}")
+    print("Please ensure 'train_models.py' has been run and all model/scaler/json files are in the 'models/' directory and correctly committed to Git.")
+    sys.exit(1) # Exit application if critical files are missing
+except Exception as e:
+    print(f"CRITICAL ERROR: An unexpected error occurred during model loading: {e}")
     sys.exit(1)
 
 # --- Load unique categorical values from the dataset ---
 try:
-    df_full = pd.read_csv("final_depression_dataset_1.csv")
+    print("Attempting to load main dataset (final_depression_dataset_1.csv)...")
+    df_full_path = os.path.join(base_dir, "final_depression_dataset_1.csv")
+    df_full = pd.read_csv(df_full_path)
+    print("Main dataset loaded successfully.")
+
     unique_cities = sorted(df_full['City'].dropna().unique().tolist())
     unique_student_degrees = sorted(df_full[df_full['Working Professional or Student'] == 'Student']['Degree'].dropna().unique().tolist())
-    # This is the source of truth for the dropdown and the map keys
     unique_professions = sorted(df_full[df_full['Working Professional or Student'] == 'Working Professional']['Profession'].dropna().unique().tolist())
     all_unique_degrees_from_dataset = sorted(df_full['Degree'].dropna().unique().tolist())
-except FileNotFoundError:
-    print("Error: final_depression_dataset_1.csv not found. Please ensure the dataset file is in the project directory.")
+    print("Unique categorical values extracted.")
+
+except FileNotFoundError as e:
+    print(f"CRITICAL ERROR: final_depression_dataset_1.csv not found at startup: {e}")
+    print("Please ensure 'final_depression_dataset_1.csv' is in the project root and correctly committed to Git.")
+    sys.exit(1) # Exit application if critical dataset is missing
+except pd.errors.EmptyDataError as e:
+    print(f"CRITICAL ERROR: final_depression_dataset_1.csv is empty or malformed: {e}")
+    sys.exit(1)
+except Exception as e:
+    print(f"CRITICAL ERROR: An unexpected error occurred during dataset loading or unique value extraction: {e}")
     sys.exit(1)
 
 # Define preprocessing functions
@@ -170,7 +188,7 @@ def load_resources(resource_type):
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        return {"Latest Articles": [], "Research & Studies": [], "Suggestions": []}
+        return {"Support & Awareness Platforms": [], "Research & Studies": [], "Suggestions": []}
 
 @app.route('/')
 def index():
