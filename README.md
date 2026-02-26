@@ -35,11 +35,11 @@ The goal of MindCare is to promote mental health awareness, encourage proactive 
 
 ### Automated Research Paper Updates (GitHub Actions)
 
-The research paper section is automatically updated monthly using GitHub Actions, pushing fresh data directly to your repository, which then triggers a Render redeploy.
+The research paper section is automatically updated monthly using GitHub Actions, pushing fresh data directly to the repository, which then triggers a Render redeploy.
 
 **How it works:**
 *   A GitHub Actions workflow is scheduled to run at `00:00 UTC` on the `1st day of every month`.
 *   It executes `research_scraper.py`, which fetches the latest papers from Semantic Scholar.
-*   If new or updated papers are found, the workflow automatically commits these changes to your `data/*.json` files and pushes them back to your GitHub repository.
+*   If new or updated papers are found, the workflow automatically commits these changes to your `data/*.json` files and pushes them back to this GitHub repository.
 *   Due to Render's auto-deploy feature, this new commit will automatically trigger a redeployment of the web service, ensuring the live application displays the most current research.
 
